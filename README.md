@@ -20,7 +20,7 @@ This repository or deployment includes the following MuleSoft API implementation
 | `ba-loan-process-papi`   | Orchestrates the loan processing business logic                     |
 | `ba-notification-sapi`   | Sends notifications to users (via email/SMS)                         |
 
-## 🧠 Flow Summary
+## Flow Summary
 
 1. **Loan Request Initiation**
    - Customer starts loan request via Agentforce.
