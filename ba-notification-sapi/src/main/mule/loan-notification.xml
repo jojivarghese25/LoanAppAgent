@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:idp-dl-extractor-120="http://www.mulesoft.org/schema/mule/idp-dl-extractor-120" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:idp-dl-extractor-110="http://www.mulesoft.org/schema/mule/idp-dl-extractor-110" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/idp-dl-extractor-110 http://www.mulesoft.org/schema/mule/idp-dl-extractor-110/current/mule-idp-dl-extractor-110.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/idp-dl-extractor-120 http://www.mulesoft.org/schema/mule/idp-dl-extractor-120/current/mule-idp-dl-extractor-120.xsd">
+	<sub-flow name="email-loan-notificationFlow" doc:id="a4575a96-22a1-4646-8d22-40a1529c5582" >
+		<ee:transform doc:name="correlationId,component" doc:id="dcffd748-b9f3-4bd9-9afa-982b8971840b">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[attributes.headers.correlationId default correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="component"><![CDATA[flow.name]]></ee:set-variable>
+				<ee:set-variable variableName="incomingPayload" ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="ca5be367-43d3-409d-badf-3b59c6b49b69" message="#[payload]"/>
+		<flow-ref doc:name="flow-entry-logger-sub-flow" doc:id="5996cbef-dd87-49db-be91-132a9f98ed05" name="flow-entry-logger-sub-flow" />
+		<set-variable value="#[output application/java&#10;---&#10;p('smtp.toAddress') ++ &quot;,&quot; ++ vars.incomingPayload.email]" doc:name="Set Variable for receipients" doc:id="c8caf115-6448-4ede-8c82-0878ce1f44b2" variableName="emailRecipients" />
+		<parse-template doc:name="Parse Template" doc:id="faf37ea4-1988-4eab-ab29-5fb88a1900ed" location="resources/emailNotification.html" />
+		<flow-ref doc:name="process-info-logger-sub-flow" doc:id="3391b4af-4c05-4840-a093-268f34b532f2" name="process-info-logger-sub-flow" />
+		<email:send doc:name="Send" doc:id="7033ca46-2d27-4c0e-b584-7fa483f830fc" config-ref="emailSMTP" fromAddress="${smtp.fromAddress}" subject='#[output text/plain&#10;---&#10;("Loan Approval Notification " ++ vars.incomingPayload.contactId default "") default "NA"]' toAddresses='#[vars.emailRecipients splitBy(",")]'>
+		</email:send>
+		<flow-ref doc:name="process-info-logger-sub-flow" doc:id="b4bd221d-cf75-4dca-b556-586653053795" name="process-info-logger-sub-flow" />
+		<ee:transform doc:name="Response" doc:id="fd775100-d0c4-4255-a0a8-00a114f621ed" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "message" : "email sent successfully"
+ }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="response-returned-logger-sub-flow" doc:id="df2647a1-d50b-4bf2-b67f-26ae798c1d52" name="response-returned-logger-sub-flow" />
+		<flow-ref doc:name="flow-complete-logger-sub-flow" doc:id="66d3df07-08da-4f0b-a4d8-96b692eb0e16" name="flow-complete-logger-sub-flow" />
+	</sub-flow>
+</mule>

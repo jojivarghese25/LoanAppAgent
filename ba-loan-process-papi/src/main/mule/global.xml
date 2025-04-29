@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd 
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	    <http:listener-config name="baLoanProcesstPapiHttpListenerConfig">
+       
+		<http:listener-connection host="0.0.0.0" port="${https.port}" tlsContext="tlsContext" protocol="HTTPS"/>
+    
+</http:listener-config>
+   <apikit:config name="baLoanProcessPapiConfig" api="resource::aceb673b-30f8-4591-982c-8ed2cd883a70:ba-loan-process-papi:1.0.0:raml:zip:ba-loan-process-papi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <tls:context name="tlsContext" doc:name="TLS Context" doc:id="6bceb4e8-21e0-417d-9201-d3781243b14f" >
+		<tls:key-store type="jks" alias="${https.certs.alias}" keyPassword="${https.certs.password}" password="${https.certs.password}" path="${https.certs.path}"/>
+	</tls:context>
+	<configuration-properties doc:name="Configuration properties" doc:id="63f9d75e-90ca-4b5a-aca3-845a79bb558f" file="properties/${runtime.env}.yaml" />
+	<secure-properties:config name="securePropertiesConfig" doc:name="Secure Properties Config" doc:id="9b73ce7d-2779-455d-b08d-ee072ef0337a" file="properties/${runtime.env}.yaml" key="${secure.key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<global-property doc:name="Global Property" doc:id="7f39a852-fa5e-4ac8-9ae7-40013d7317e4" name="runtime.env" value="dev" />
+	<global-property doc:name="Global Property" doc:id="817282d0-0517-412c-a6f4-da906f81537f" name="secure.key" value="${secure.key}" />
+	
+	<file:config name="File_Config" doc:name="File Config" doc:id="b298f087-f6f1-4100-b442-b38ca5d3a867" >
+		<file:connection workingDir="#[Mule::p('app.home')]" />
+	</file:config>
+	<http:request-config name="convertApiRequestconfig" doc:name="HTTP Request configuration" doc:id="91ffbd21-eded-47b8-b306-cfdbc8c6fd7f" >
+		<http:request-connection host="${convertAPI.host}" protocol="HTTPS"/>
+	</http:request-config>
+	<http:request-config name="docusignRequestConfig" doc:name="HTTP Request configuration" doc:id="3de20c2b-4b7e-4546-866c-662631b4e1cd" basePath="${docusignSapi.basePath}">
+		<http:request-connection protocol="${docusignSapi.protocol}" host="${docusignSapi.host}" />
+	</http:request-config>
+	<http:request-config name="experianRequestConfig" doc:name="HTTP Request configuration" doc:id="683acb85-2016-4432-8e1a-05f0a3d744af" basePath="${experianSapi.api}">
+		<http:request-connection protocol="HTTPS" host="${experianSapi.host}" />
+	</http:request-config>
+</mule>

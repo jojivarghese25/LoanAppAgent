@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student ID Proof Verification Approval Notification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .email-container {
+            width: 100%;
+            max-width: 600px;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .email-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .email-header h2 {
+            color: #333;
+        }
+        .email-content {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.5;
+        }
+        .email-content b {
+            color: #333;
+        }
+        .email-footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+            text-align: center;
+        }
+        .contact-info {
+            font-weight: bold;
+            color: #333;
+        }
+        .signature {
+            margin-top: 30px;
+            font-size: 16px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-content">
+            <p>Dear #[vars.contactRecord[0].Name default "NA"],</p>
+            <p>We are pleased to inform you that your ID Proof has been successfully verified and approved.</p>
+            <p>If you require any further assistance, please do not hesitate to contact us.</p>
+        </div>
+        <div class="signature">
+            <p>Best regards,</p>
+            <p>NJC Agent</p>
+        </div>
+
+    </div>
+</body>
+</html>

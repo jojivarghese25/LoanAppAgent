@@ -1,0 +1,30 @@
+%dw 2.0
+
+type auto_fcc67c3f_fe23_4930_a1ff_23278904355e_Input_Attributes = {|
+  clientCertificate?: {|
+    publicKey?: {|  |}, 
+    "type"?: String, 
+    encoded?: Binary
+  |}, 
+  headers: {|
+    "X-CLIENT-ID": String, 
+    "X-CLIENT-SECRET": String, 
+    "X-CORRELATION-ID"?: String
+  |}, 
+  listenerPath: String, 
+  method: String, 
+  queryParams: {|
+    documentId: String, 
+    envelopeId: String
+  |}, 
+  queryString: String, 
+  relativePath: String, 
+  remoteAddress: String, 
+  requestPath: String, 
+  requestUri: String, 
+  scheme: String, 
+  uriParams: {|  |}, 
+  version: String, 
+  localAddress: String
+|}
+

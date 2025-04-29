@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="MULE_LIB/aceb673b-30f8-4591-982c-8ed2cd883a70/mule-plugin-idp-action-c175a468-d183-4a3e-8de8-88edc6db66f0/1.2.0"/>
+	<classpathentry kind="con" path="MULE_LIB/org.mule.connectors/mule-email-connector/1.7.3"/>
+	<classpathentry kind="con" path="MULE_LIB/aceb673b-30f8-4591-982c-8ed2cd883a70/mule-plugin-idp-action-bfc0d06f-3b10-4573-bff8-966f54090c27/1.0.0"/>
+	<classpathentry kind="con" path="MULE_LIB/org.mule.modules/mule-validation-module/2.0.6"/>
+	<classpathentry kind="con" path="MULE_LIB/com.mulesoft.modules/mule-secure-configuration-property-module/1.2.7"/>
+	<classpathentry kind="con" path="MULE_LIB/com.mulesoft.connectors/mule-salesforce-connector/10.20.1"/>
+	<classpathentry kind="con" path="MULE_LIB/org.mule.modules/mule-oauth-module/1.1.21"/>
+	<classpathentry kind="con" path="MULE_LIB/org.mule.connectors/mule-http-connector/1.10.0"/>
+	<classpathentry kind="con" path="MULE_LIB/org.mule.connectors/mule-sockets-connector/1.2.4"/>
+	<classpathentry exported="true" kind="con" path="MULE_RUNTIME/org.mule.tooling.server.4.8.ee"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="src/main/mule"/>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="src" path="src/main/resources"/>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/resources"/>
+	<classpathentry kind="src" path="src/test/munit"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>

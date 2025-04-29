@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_723b538a_c301_4aab_963e_8be1b4729c7a_Output_Variables_component = String | Null
+

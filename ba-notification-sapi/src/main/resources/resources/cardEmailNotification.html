@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 70%;
+}
+
+td, th {
+  border: 3px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+</style>
+</head>
+<body>
+<h3> Dear Customer, please find credit card details</h3>
+<h2 align=center >Credit card Details</h2>
+
+<table align= center>
+  <tr>
+    <th width= 75>Key</th>
+    <th width= 300>Value</th>
+  </tr>
+  <tr>
+    <td>Correlation Id </td>
+    <td>#[vars.correlationId default "NA"]</td>
+  </tr>
+  <tr>
+    <td>Timestamp</td>
+    <td>#[now()]</td>
+  </tr>
+  <tr>
+    <td>Old Credit card</td>
+    <td>#[payload.oldCreditCardStatus default "active"]</td>
+  </tr>
+  <tr>
+    <td>New Credit card number</td>
+    <td>#[payload.creditCardNumber default "Not Requested"]</td>
+  </tr>
+  <tr>
+    <td>New Credit card status</td>
+    <td>#[payload.newCreditCardStatus default "NA"]</td>
+  </tr>
+</table>
+
+</body>
+</html>
+

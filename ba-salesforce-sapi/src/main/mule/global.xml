@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd  http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+    <http:listener-config name="baSalesforceSapiHttpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="${https.port}" tlsContext="tlsContext" protocol="HTTPS" />
+    </http:listener-config>
+    <apikit:config name="ba-salesforce-sapi-config" api="resource::aceb673b-30f8-4591-982c-8ed2cd883a70:ba-salesforce-sapi:1.0.1:raml:zip:ba-salesforce-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <configuration-properties doc:name="Configuration properties" doc:id="775a133b-584c-4191-bebb-5f695b35400d" file="properties/${runtime.env}.yaml" />
+    <salesforce:sfdc-config name="Salesforce_Config_loan" doc:name="Salesforce Config" doc:id="62de9e1a-9544-44cf-8b4a-8ccc9277c5f8">
+        <salesforce:basic-connection username="${sf.username}" password="${sf.password}" />
+    </salesforce:sfdc-config>
+    <global-property doc:name="Global Property" doc:id="f0420f7e-72bd-4670-8789-94280326aeb4" name="runtime.env" value="dev" />
+    <global-property doc:name="Global Property" doc:id="c13b8639-7f07-4e98-9635-d8d1684f92c6" name="secure.key" value="${secure.key}" />
+    <secure-properties:config name="securePropertiesConfig" doc:name="Secure Properties Config" doc:id="51e43268-d8a0-46a0-a56b-7dc890b3acbf" file="properties/${runtime.env}.yaml" key="${secure.key}">
+        <secure-properties:encrypt algorithm="Blowfish" />
+    </secure-properties:config>
+    <tls:context name="tlsContext" doc:name="TLS Context" doc:id="418ffef1-bca4-4874-ac07-0a51caceb763">
+        <tls:key-store type="jks" path="certs/ba-db-sapi-keystore.jks" alias="${https.certs.alias}" keyPassword="${https.certs.password}" password="${https.certs.password}" />
+    </tls:context>
+</mule>

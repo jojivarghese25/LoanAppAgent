@@ -1,0 +1,17 @@
+docusign1:
+  consumer_key: "![us6UsJoq1oMAIHx7r23HeeDPV1aMUBC3bTLUggZ9e9nY0Zi+SXa4zQ==]"
+  consumer_secret: "![QZjmSiy+rnqNrYYMvGkP2MH5uco+K9EcOaj004+FtVmmKwejYOnOFg==]"
+  account_id: "![hNNuMTOaV6xFd9PhA3+6Ij8/r58CjCUU4kZx5JTbP4loLXFOlV6kwA==]"
+  https-password: "![0F0AZHTDi7VULeG7FeR7NQ==]"
+  
+docusign:
+  consumer_key: "![1EaB0VcGTzrp1HU779vDh5p6o3EdzZHjZxTLxCjHB2DJ4W0i/2lAnQ==]"
+  consumer_secret: "![4qKjO45NpfqdMtmMCMUrRaOgB65FT8RPfnsNvsXD4kRYWntF1+pdVw==]"
+  account_id: "![zIyJtV4zpvJx+HpLhmPtm6fBpbCROv8EdSC/j/6CVNFR4vZEArAx+w==]"
+  https-password: "![0F0AZHTDi7VULeG7FeR7NQ==]"
+tls:
+  keystore:
+    password: "![9s6CWZfJozw=]"
+    type: "pkcs12"
+    path: "certs/istikaDemo.p12"
+      

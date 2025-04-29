@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="get-contact-details" doc:id="f0475071-6d96-477f-b100-e13bef1f7079" >
+		<ee:transform doc:name="attributes vars" doc:id="58f28bcd-ca97-4271-a7d2-26f2301052f5">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[attributes.headers.correlationId default correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="component"><![CDATA[flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="flow-entry-logger-sub-flow" doc:id="82a44e20-b0ab-400d-a885-0b933042ac18" name="flow-entry-logger-sub-flow"/>
+		<set-variable value="#[attributes.queryParams.contactId]" doc:name="Set Variable" doc:id="e5ad716e-1d9a-45e3-be63-501f0aa27bdf" variableName="contactIdVar" />
+		<salesforce:query doc:id="ff394855-1269-4339-9f4b-37e48551e08e" config-ref="Salesforce_Config_loan" target="receipientName" doc:name="Query Contact Object">
+			<salesforce:salesforce-query><![CDATA[SELECT Id,Name from CONTACT where ID = ':contactId']]></salesforce:salesforce-query>
+			<salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	"contactId" : vars.contactIdVar
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="5a5c5d18-1a61-4495-abe1-711fb85618e5">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.receipientName]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="flow-complete-logger-sub-flow" doc:id="169d5dd4-02ca-40b9-812a-1d684919e87f" name="flow-complete-logger-sub-flow" />
+	</sub-flow>
+</mule>

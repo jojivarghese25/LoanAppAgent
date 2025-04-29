@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:idp-dl-extractor-120="http://www.mulesoft.org/schema/mule/idp-dl-extractor-120"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:idp-dl-extractor-110="http://www.mulesoft.org/schema/mule/idp-dl-extractor-110" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/idp-dl-extractor-110 http://www.mulesoft.org/schema/mule/idp-dl-extractor-110/current/mule-idp-dl-extractor-110.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/idp-dl-extractor-120 http://www.mulesoft.org/schema/mule/idp-dl-extractor-120/current/mule-idp-dl-extractor-120.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+	
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="d2e30d92-7f96-4a69-8bc9-91890616f258" >
+		<salesforce:basic-connection username="epic.b9d2f7119a3c@orgfarm.com" password="orgfarm1234" />
+	</salesforce:sfdc-config>
+	<flow name="idp-loan-dl-extract" doc:id="1e72c286-ca94-47d2-999b-09224b104ced" >
+		<email:listener-imap doc:name="On New Email - IMAP" doc:id="5a07d0a1-526d-4cd6-bba0-44d54303b900" config-ref="emailIMAPLoan">
+			<reconnect />
+			<scheduling-strategy >
+				<fixed-frequency/>
+			</scheduling-strategy>
+			<email:imap-matcher subjectRegex="Loan Application" seen="EXCLUDE" answered="EXCLUDE" deleted="EXCLUDE"/>
+		</email:listener-imap>
+		<logger level="INFO" doc:name="Logger" doc:id="fa0abcf5-192f-4815-9e3f-cbca20c9dd1a" />
+		<ee:transform doc:name="idp input payload" doc:id="df25e430-4d79-4eb3-af0e-a62e02023740">
+			<ee:message>
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Strings
+output multipart/form-data
+---
+{
+	parts: {
+	  file: {
+	  	headers: {
+	  		"Content-Disposition":{
+	  			name: "file",
+	  			filename: keysOf(payload.attachments)[0],
+	  			subtype: "form-data"
+	  		},
+	  	"Content-Type": substringBefore(payload.attachments[0].^mediaType,";"),
+	  	},
+	  content: payload.attachments[0]
+	  }
+	}
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="contactIdVar"><![CDATA[%dw 2.0
+output application/json
+import * from dw::core::Strings
+var contactId= attributes.headers.Subject
+---
+(contactId splitBy  " ") [-1 to 0] [0]]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<idp-dl-extractor-120:postdocumentactionexecution doc:name="postDocumentActionExecution" doc:id="52de55df-5fcd-45eb-a988-f8a19c2a6eb3" config-ref="idpDLextractor"/>
+		<logger level="INFO" doc:name="After IDP post" doc:id="9f81aabb-4a6f-4940-bf15-618738d6c5fa" message="#[payload]" />
+		<set-variable value="#[payload.id]" doc:name="idp-id" doc:id="3a0f3f74-1d6c-47c0-b432-af424e1c496a" variableName="idp-id" />
+		<flow-ref doc:name="get-dl-details" doc:id="287c2d13-6600-4499-9302-a6dfdbebe6c2" name="get-dl-details" />
+	</flow>
+	<sub-flow name="get-dl-details" doc:id="9d9f7c02-d054-4004-ba3c-86c6aa539960" >
+		<logger level="INFO" doc:name="Before get-idp-payload" doc:id="a4c66a3e-ae6d-49be-b4a4-f8c7ac3d0fcf" message="Before get-idp-payload" />
+		<async doc:name="Async" doc:id="15442fe7-4d39-426a-92c2-0e69676c13f2">
+			<until-successful maxRetries="5" doc:name="Until Successful" doc:id="0d7d608e-e954-4e62-a012-b551e43566db" >
+				<logger level="INFO" doc:name="Before get-idp-payload" doc:id="b4549354-58ea-4183-815b-b69abfad09e2" message="Before get-idp-payload" />
+				<idp-dl-extractor-120:getdocumentactionexecution doc:name="getDocumentActionExecution" doc:id="efa8824d-3823-422f-9b84-a147e81075c7" config-ref="idpDLextractor" execution-id='#[vars."idp-id"]'/>
+				<validation:is-true doc:name="payload.status is SUCCEEDED" doc:id="7e30a9e5-095d-4f56-afe4-9e26d1ede47b" config-ref="validationConfig" expression='#[payload.status == "SUCCEEDED" or payload.status == "MANUAL_VALIDATION_REQUIRED"]' />
+				<logger level="INFO" doc:name="Logger" doc:id="2f1bc0f9-ce1a-4a64-ab99-a019737c23cd" message='#["After IDP Payload---"]'/>
+				<ee:transform doc:name="Transform Message" doc:id="a03c9b6d-1746-4cce-b960-a3838280da83">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"address": "25 MADDEN ROAD TANDRAGEE BT62 2DG",
+    "DL-Number": payload.prompts."DLNumber".answer.value default "SMITH609258W99IM 17",
+    "name": "Will Smith"
+}
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<!-- [STUDIO:"Request to Salesforce sapi  to Retrieve LoanStatusObject"]<http:request method="GET" doc:name="Request to Salesforce sapi  to Retrieve LoanStatusObject" doc:id="13a6943c-1a05-4ff9-b09f-fc6bbe5b8395" config-ref="salesforceSapiRequestconfig" path="${salesforceSapi.loandetails}" target="loanRecord">
+					<http:headers ><![CDATA[#[output json &#45;&#45;-
+{
+	"X-CLIENT-ID": "1234",
+	"X-CLIENT-SECRET": "12345"
+}&#93;&#93;&#93;></http:headers>
+					<http:query-params ><![CDATA[#[output json &#45;&#45;-
+
+{
+	"contactId": vars.contactIdVar
+}&#93;&#93;&#93;></http:query-params>
+				</http:request> [STUDIO] -->
+				<salesforce:query doc:name="Query LoanStatusObject" doc:id="ed172283-7a20-4dcf-a1f8-10d235ccf51e" config-ref="Salesforce_Config" target="loanRecord">
+					<salesforce:salesforce-query><![CDATA[SELECT ID,LoanAmount__c from LoanStatusObject__c where ContactId__c = ':contactId']]></salesforce:salesforce-query>
+					<salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	"contactId" : vars.contactIdVar
+}]]]></salesforce:parameters>
+				</salesforce:query>
+				<ee:transform doc:name="Transform Message" doc:id="4e942f4e-37ad-4bcf-a600-d765a08b2f1b">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+[{
+	"ProofDocument__c": "DrivingLicence",
+	"ProofId__c": payload."DL-Number",
+	"id": vars.loanRecord[0].Id,
+	"LoanStatus__c": "Approved"	
+}]]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<!-- [STUDIO:"Request to Salesforce sapi  to Update LoanStatusObject"]<http:request method="PUT" doc:name="Request to Salesforce sapi  to Update LoanStatusObject" doc:id="141db570-b2b3-481a-8317-5266a73b86af" config-ref="salesforceSapiRequestconfig" path="${salesforceSapi.loandetails}">
+					<http:headers ><![CDATA[#[output json &#45;&#45;-
+{
+	"X-CLIENT-ID": "1234",
+	"X-CLIENT-SECRET": "12345"
+}&#93;&#93;&#93;></http:headers>
+				</http:request> [STUDIO] -->
+				<salesforce:update type="LoanStatusObject__c" doc:name="Update LoanStatusObject" doc:id="a8edd1f1-85cb-466b-a3cc-9f193292f479" config-ref="Salesforce_Config" />
+				<logger level="INFO" doc:name="Logger" doc:id="1f573f1e-7e2e-4c6b-835f-622bddb78e13" message="AFTER UPDATING LOANSTATUSOBJECT IN SALESFORCE"/>
+			</until-successful>
+			<!-- [STUDIO:"Request to Salesforce sapi  to retrieve recipientname"]<http:request method="GET" doc:name="Request to Salesforce sapi  to retrieve recipientname" doc:id="ee0b142c-4cd4-4cab-908b-62a5fbf42150" config-ref="salesforceSapiRequestconfig" path="${salesforceSapi.contactdetails}" target="receipientName">
+				<http:headers><![CDATA[#[output json &#45;&#45;-
+{
+	"X-CLIENT-ID": "1234",
+	"X-CLIENT-SECRET": "12345"
+}&#93;&#93;&#93;></http:headers>
+				<http:query-params ><![CDATA[#[output json &#45;&#45;-
+
+{
+	"contactId": vars.contactIdVar
+}&#93;&#93;&#93;></http:query-params>
+			</http:request> [STUDIO] -->
+			<salesforce:query doc:name="Query Contact Object" doc:id="93098451-74da-41b5-9945-70c3febcefb3" config-ref="Salesforce_Config" target="receipientName">
+					<salesforce:salesforce-query><![CDATA[SELECT Id,Name,Email from CONTACT where ID = ':contactId']]></salesforce:salesforce-query>
+					<salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	"contactId" : vars.contactIdVar
+}]]]></salesforce:parameters>
+				</salesforce:query>
+			<!-- [STUDIO:"emailNotificationFlow"]<flow-ref doc:name="emailNotificationFlow" doc:id="c477486b-d9eb-41ca-8bac-346f228f1c7e" name="emailNotificationFlow" /> [STUDIO] -->
+			<http:request method="POST" doc:name="Request to notification Sapi" doc:id="9906249a-bc9e-48a4-8582-d8e9e1febbff" config-ref="notificationSapirequestSapi" path="${notificationSapi.createNotification}" >
+				<http:body ><![CDATA[#[output json
+---
+{
+	
+loanAmount: vars.loanRecord[0].loanAmount__c  as Number default 0,
+name: vars.receipientName[0].Name,
+contactId: vars.receipientName[0].Id,
+id: vars.loanRecord[0].Id,
+email: vars.receipientName[0].Email
+}]]]></http:body>
+				<http:headers ><![CDATA[#[output json ---
+{
+	"X-CLIENT-ID": "1234",
+	"X-CLIENT-SECRET": "12345"
+}]]]></http:headers>
+			</http:request>
+			<logger level="INFO" doc:name="Logger" doc:id="97469ba7-78e4-4be0-8ec6-9f54a834817b" message="NOTIFICATION SENT SUCCESSFULLY" />
+		</async>
+	</sub-flow>
+	<!-- [STUDIO:"emailNotificationFlow"]<sub-flow name="emailNotificationFlow" doc:id="16178074-762d-4ec9-ac01-c27a8421a2f9" >
+		<set-variable value="#[output application/java&#10;&#45;&#45;-&#10;p('smtp.toAddress')&#93;" doc:name="Set Variable for receipients" doc:id="7dbd6e65-6505-49d4-a9e9-ff829944ce39" variableName="emailRecipients" />
+		<parse-template doc:name="Parse Template" doc:id="fa67fcc3-97ca-4515-a925-a8eff76af8b4" location="resources/emailNotification.html" />
+		<email:send doc:name="Send" doc:id="112c9bf4-a839-4db1-af16-44410feaab3d" config-ref="Email_SMTP" fromAddress="${smtp.fromAddress}" subject='#[output text/plain&#10;&#45;&#45;-&#10;"Loan Approval Notification " ++ vars.contactIdVar&#93;' toAddresses='#[vars.emailRecipients splitBy(",")&#93;' />
+	</sub-flow> [STUDIO] -->
+</mule>

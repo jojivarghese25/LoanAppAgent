@@ -1,0 +1,69 @@
+
+
+  
+idp:
+   host: "idp-rt.us-east-1.anypoint.mulesoft.com" 
+   port: "443"
+   clientId: "![d5wXHOQgseGN990MjMuup9VZZjMK2J5LIHxspwjT41D09LbtuzqY1Q==]"
+   clientSecret: "![YvSvaEjso2kMKNEVFsWG3mzLZkXcgnCcY3sEZGRC2tzG8KxLLxhC8A==]"
+   accessTokenURL: "https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token"
+
+  
+
+tls:
+  keystore:
+    password: "mule"
+    type: "pkcs12"
+    path: "certs/istikaDemo.p12"
+                            
+db:
+    host: "jdbc:postgresql://139.59.79.191:5432/odoo17db"
+    driver: "org.postgresql.Driver"
+    
+
+api: 
+  #groupId: "b0beec90-c6cc-4c36-8f7c-ef1f8f91253b"
+  artifactId: "${project.artifactId}"
+  version: "${project.version}"
+  #spec: "resource::${api.groupId}:${api.artifactId}:${api.version}:oas:zip:api.json"
+  majorVersion: "v1"
+  listenerConfig: "apiHttpListenerConfig"
+http:
+    port: "8081"
+https:
+    port: "8081"
+  
+smtp:
+  host: "smtp.gmail.com"
+  port: "587"
+  user: "njcagentforce@gmail.com"
+  password: "gtox lole fkyj jcqi"
+  fromAddress: "njcagentforce@gmail.com"   
+  toAddress: "joji.varghese@njclabs.com,vibin.viswanath@njclabs.com"
+
+salesforceSapi:
+  host: "ba-salesforce-sapi.us-e2.cloudhub.io"
+  api: "/api/v1"
+  loandetails: "/loan/loandetails"
+  contactdetails: "/contact/contactdetails"
+      
+  
+  
+agentImap:
+  host: "imap.gmail.com"
+  port: "993"
+#  username: "![ElXArjfc8THMarOg5vLS5oQPilPB5aHq]"
+#  password: "![JJksm30HrF+7m9tuUrWhngKEavhqOE7q]"
+  username: "njcagentforce@gmail.com"
+  password: "gtox lole fkyj jcqi" 
+
+agentLoanImap:
+  host: "imap.gmail.com"
+  port: "993"
+  username: "loannjc@gmail.com"
+  password: "zqlu ycuw jhek ucgj" 
+  
+notificationSapi:
+  host: "ba-notification-sapi.us-e2.cloudhub.io" 
+  api: "/api/v1"
+  createNotification: "/loannotification"

@@ -1,0 +1,9 @@
+%dw 2.0
+
+type auto_3981e395_6026_43dd_9891_9ea0d4b2376a_Output_Attributes = {|
+  statusCode: Number, 
+  headers: { _?: String }, 
+  reasonPhrase: String
+|} {"typeId": "com.mulesoft.connectivity.rest.commons.api.operation.HttpResponseAttributes",
+"typeAlias": "HttpResponseAttributes"}
+

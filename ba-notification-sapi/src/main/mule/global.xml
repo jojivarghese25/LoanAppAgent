@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd  http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd  http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+    <http:listener-config name="apiHttpListenerConfig" doc:name="HTTP Listener config" doc:id="2ba43ac3-addd-4ba2-ba4f-d86806ed8e46">
+        <!--<http:listener-connection host="0.0.0.0" port="8086" /> -->
+        <http:listener-connection host="0.0.0.0" port="${https.port}" tlsContext="tlsContext" protocol="HTTPS" />
+    </http:listener-config>
+    <tls:context name="tlsContext" doc:name="TLS Context" doc:id="a5be7889-7e32-40ed-8ffe-014930a453ce">
+        <tls:key-store type="${tls.keystore.type}" path="${tls.keystore.path}" keyPassword="${secure::tls.keystore.password}" password="${secure::tls.keystore.password}" />
+    </tls:context>
+    <apikit:config name="baNotificationSapiConfig" api="resource::aceb673b-30f8-4591-982c-8ed2cd883a70:ba-notification-sapi:1.0.2:raml:zip:ba-notification-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <email:smtp-config name="emailSMTP" doc:name="Email SMTP" doc:id="6f0df0ed-84bb-4662-b1cd-8a6e1696fdf8">
+        <email:smtp-connection host="${smtp.host}" port="${smtp.port}" user="${smtp.user}" password="${smtp.password}">
+            <email:properties>
+                <email:property key="mail.smtp.starttls.required" value="true" />
+            </email:properties>
+        </email:smtp-connection>
+    </email:smtp-config>
+    <configuration-properties doc:name="Configuration properties" doc:id="27b6c186-6910-4a6e-a28c-7ccf4c5a5ac9" file="properties\secure-dev.yaml" />
+    <secure-properties:config name="securePropertiesConfig" doc:name="Secure Properties Config" doc:id="1051cfe6-f07e-4435-b33a-095fc8318448" file="properties\secure-dev.yaml" key="${secure.key}">
+        <secure-properties:encrypt algorithm="Blowfish" />
+    </secure-properties:config>
+    <global-property doc:name="Global Property" doc:id="59b77092-99af-47b9-bd5b-602eb9983cbd" name="secure.key" value="${secure.key}" />
+</mule>

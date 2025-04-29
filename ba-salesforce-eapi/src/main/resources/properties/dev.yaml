@@ -1,0 +1,67 @@
+http.port : "8081"
+https:
+  port: "8082"
+  path: "/api/v1/*"
+  certs:
+    alias: "mule"
+    password: "njclabs@openbank"
+    path: "certs/ba-card-papi-keystore.jks"
+
+sf:
+  username: "sneha.ek@njclabs.com2025/01/16"
+  password: "Njclabs@123"        
+  
+idp:
+   host: "idp-rt.us-east-1.anypoint.mulesoft.com" 
+   port: "443"
+   clientId: "![d5wXHOQgseGN990MjMuup9VZZjMK2J5LIHxspwjT41D09LbtuzqY1Q==]"
+   clientSecret: "![YvSvaEjso2kMKNEVFsWG3mzLZkXcgnCcY3sEZGRC2tzG8KxLLxhC8A==]"
+   accessTokenURL: "https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token"
+
+cardPapi:
+  host: "ba-card-management-papi.us-e2.cloudhub.io"
+  protocol: "HTTPS"
+  port: "8082"
+  api: "/api/v1"
+  creditcard: "creditcardstatus"
+  security: "securitydetails"
+  transaction: "paymentdetails"
+  
+  
+loanPapi:
+  host: "ba-loan-process-papi.us-e2.cloudhub.io" 
+  port: "8082"  
+  api: "/api/v1"
+  creditscore: "/creditscore"
+  documentsign: "/documentsign"
+
+
+salesforceSapi:
+  host: "ba-salesforce-sapi.us-e2.cloudhub.io"
+  api: "/api/v1"
+  loandetails: "/loan/loandetails"
+  contactdetails: "/contact/contactdetails"
+        
+
+notificationSapi:
+  host: "ba-notification-sapi.us-e2.cloudhub.io" 
+  api: "/api/v1"
+  createNotification: "/loannotification"
+
+
+tracePoint:
+  request: "REQUEST_RECEIVED"
+  response: "RESPONSE_RETURNED"
+  entry: "FLOW_ENTRY"
+  complete: "FLOW_COMPLETE"
+  info: "PROCESS_INFO"
+  before.outbound: "BEFORE_OUTBOUND"
+  after.outbound: "AFTER_OUTBOUND"
+  before.transform: "BEFORE_TRANSFORM_MESSAGE" 
+  after.transform: "AFTER_TRANSFORM_MESSAGE"
+  error: "ERROR"
+priority:
+  info: "INFO"
+  debug: "DEBUG"
+  error: "ERROR"
+env: "dev"

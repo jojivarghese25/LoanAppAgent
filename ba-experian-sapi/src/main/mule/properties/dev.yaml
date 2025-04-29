@@ -1,0 +1,65 @@
+http.port : "8081"
+https:
+  port: "8082"
+  path: "/api/v1/*"
+  certs:
+    alias: "mule"
+    password: "njclabs@openbank"
+    path: "certs/ba-experian-sapi-keystore.jks"
+    
+
+
+  
+credit.score: "700" 
+overallResponse.CONTINUE: "CONTINUE" 
+overallResponse.ACCEPT: "ACCEPT"
+overallResponse.REFER: "REFER"
+
+customer.salary: "1500"
+customer.currency: "USD"
+customer.occupationType: "Part time"
+
+docusign.emailId: "remya.r@njclabs.com,joji.varghese@njclabs.com"
+
+foreach.batchSize: "1"
+  
+experian:
+  host: "sandbox-uk-api.experian.com"
+  oauth.path: "/oauth2/v1/token"
+  oauth.username: "njclabswmtest@gmail.com"
+  oauth.password: "Welcome@125"
+  oauth.clientId: "jyaVmjMmkViqOrfeAlXGrVaO0iGByFPp"
+  oauth.clientSecret: "Fd85r9gwaiMtAmNB"
+  
+  credit.path : "/da/ccis-devportalapis/v1/KYC"
+  method: "POST"  
+    
+convertAPI:
+  host: "v2.convertapi.com"
+  secret: "secret_NpDHBwBC6DB73Vn0"
+  path: "/convert/htm/to/pdf"
+
+experianApp:  
+  https-password: "![Jz/3/jMPj4qcE6szg7+6WQ==]"
+  username: "![YsJsXUvjdAGUkAGk+tz/FNvxN55WYusr]"
+  password: "![yx+1+5TYn8R12vVdqPrEJg==]"
+  client_id: "![8vSLAGGMF06sVH0WMPeprXiZ4CFXua5bAzSOdOhbX3imZefjSs7NAQ==]"
+  client_secret: "![NTsqCVgvfTh3ll2USMdbYcXCS1/ZEmyy]"
+    
+
+tracePoint:
+  request: "REQUEST_RECEIVED"
+  response: "RESPONSE_RETURNED"
+  entry: "FLOW_ENTRY"
+  complete: "FLOW_COMPLETE"
+  info: "PROCESS_INFO"
+  before.outbound: "BEFORE_OUTBOUND"
+  after.outbound: "AFTER_OUTBOUND"
+  before.transform: "BEFORE_TRANSFORM_MESSAGE" 
+  after.transform: "AFTER_TRANSFORM_MESSAGE"
+  error: "ERROR"
+priority:
+  info: "INFO"
+  debug: "DEBUG"
+  error: "ERROR"
+env: "dev"

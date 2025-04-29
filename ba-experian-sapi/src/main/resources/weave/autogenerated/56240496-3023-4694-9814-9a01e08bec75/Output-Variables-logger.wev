@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_56240496_3023_4694_9814_9a01e08bec75_Output_Variables_logger = Any
+

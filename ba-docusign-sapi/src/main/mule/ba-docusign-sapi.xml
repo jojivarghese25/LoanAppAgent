@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="ba-docusign-sapi-main">
+        <http:listener config-ref="apiHttpListenerConfig" path="/api/v1/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="ba-docusign-sapi-config" />
+		<error-handler ref="common-exception-handler" />
+    </flow>
+    <flow name="get:\documents:ba-docusign-sapi-config" doc:id="7ba876e7-503a-4c5f-9227-8d8b786a50e5">
+		<flow-ref doc:name="retrieve-documents-flow" doc:id="ca196999-ceb3-4e0f-b087-ad14610dfa0c" name="retrieve-documents-flow"/>
+    </flow>
+    <flow name="post:\documents:multipart\form-data:ba-docusign-sapi-config" doc:id="4df3a735-d9f7-4e2c-b066-dc7060c69b03">
+		<flow-ref doc:name="create-documents-flow" doc:id="c6f9a8db-a933-4184-9dde-aaf8423cb05a" name="create-documents-flow"/>
+    </flow>
+</mule>

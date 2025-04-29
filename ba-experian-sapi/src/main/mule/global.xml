@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd 
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+	    <http:listener-config name="baexperianSapiHttpListenerConfig">
+       
+		<http:listener-connection host="0.0.0.0" port="${https.port}" tlsContext="tlsContext" protocol="HTTPS"/>
+    
+</http:listener-config>
+   <apikit:config name="baExperianSapiConfig" api="resource::aceb673b-30f8-4591-982c-8ed2cd883a70:ba-experian-sapi:1.0.0:raml:zip:ba-experian-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <tls:context name="tlsContext" doc:name="TLS Context" doc:id="6bceb4e8-21e0-417d-9201-d3781243b14f" >
+		<tls:key-store type="jks" path="${https.certs.path}" alias="${https.certs.alias}" keyPassword="${https.certs.password}" password="${https.certs.password}" />
+	</tls:context>
+	<configuration-properties doc:name="Configuration properties" doc:id="63f9d75e-90ca-4b5a-aca3-845a79bb558f" file="properties/${runtime.env}.yaml" />
+	<secure-properties:config name="securePropertiesConfig" doc:name="Secure Properties Config" doc:id="9b73ce7d-2779-455d-b08d-ee072ef0337a" file="properties/${runtime.env}.yaml" key="${secure.key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<global-property doc:name="Global Property" doc:id="7f39a852-fa5e-4ac8-9ae7-40013d7317e4" name="runtime.env" value="dev" />
+	<global-property doc:name="Global Property" doc:id="817282d0-0517-412c-a6f4-da906f81537f" name="secure.key" value="${secure.key}" />
+     <http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="4b21c17e-547f-4b77-994b-68a13008cba1" >
+		<http:request-connection protocol="HTTPS" host="${experian.host}" />
+	</http:request-config>
+	
+	<http:request-config name="HTTP_Request_convert_api" doc:name="HTTP Request configuration" doc:id="bed665a6-14a0-45e2-a2fe-1abf7135798a" >
+		<http:request-connection host="${convertAPI.host}" protocol="HTTPS"/>
+	</http:request-config>
+
+</mule>

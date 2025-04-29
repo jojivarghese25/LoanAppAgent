@@ -1,0 +1,27 @@
+%dw 2.0
+
+type auto_f0475071_6d96_477f_b100_e13bef1f7079_Output_Attributes = {|
+  clientCertificate?: {|
+    publicKey?: {|  |}, 
+    "type"?: String, 
+    encoded?: Binary
+  |}, 
+  headers: {|
+    "X-CLIENT-ID": String, 
+    "X-CLIENT-SECRET": String, 
+    "X-CORRELATION-ID"?: String
+  |}, 
+  listenerPath: String, 
+  method: String, 
+  queryParams: {| contactId: String |}, 
+  queryString: String, 
+  relativePath: String, 
+  remoteAddress: String, 
+  requestPath: String, 
+  requestUri: String, 
+  scheme: String, 
+  uriParams: {|  |}, 
+  version: String, 
+  localAddress: String
+|}
+

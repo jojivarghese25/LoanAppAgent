@@ -1,0 +1,53 @@
+http.port : "8081"
+https:
+  port: "8082"
+  path: "/api/v1/*"
+  certs:
+    alias: "mule"
+    password: "njclabs@openbank"
+    
+tls:
+  keystore:
+    password: "mule"
+    type: "pkcs12"
+    path: "certs/istikaDemo.p12"
+    
+        
+transaction.mode: "CreditCard"  
+
+creditCardStatus: "Active"
+newCreditCardRequested : "yes"
+deactivateCreditCard : "yes"
+oldCreditCardStatus: "De-activate"
+
+smtp:
+  host: "smtp.gmail.com"
+  port: "587"
+  user: "loannjc@gmail.com"
+  password: "zqlu ycuw jhek ucgj"
+  fromAddress: "njcagentforce@gmail.com"   
+  toAddress: "joji.varghese@njclabs.com"
+  
+
+  
+tracePoint:
+  request: "REQUEST_RECEIVED"
+  response: "RESPONSE_RETURNED"
+  entry: "FLOW_ENTRY"
+  complete: "FLOW_COMPLETE"
+  info: "PROCESS_INFO"
+  before.outbound: "BEFORE_OUTBOUND"
+  after.outbound: "AFTER_OUTBOUND"
+  before.transform: "BEFORE_TRANSFORM_MESSAGE" 
+  after.transform: "AFTER_TRANSFORM_MESSAGE"
+  error: "ERROR"
+priority:
+  info: "INFO"
+  debug: "DEBUG"
+  error: "ERROR"
+env: "dev"  
+
+          
+
+  
+  

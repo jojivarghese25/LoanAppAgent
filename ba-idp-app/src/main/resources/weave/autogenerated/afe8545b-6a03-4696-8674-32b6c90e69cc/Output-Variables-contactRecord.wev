@@ -1,0 +1,12 @@
+%dw 2.0
+
+type auto_afe8545b_6a03_4696_8674_32b6c90e69cc_Output_Variables_contactRecord = Array<Contact {"label": "Contact",
+"typeId": "Contact"}>
+type Contact = {|
+  Id?: String {"typeId": "Id"}, 
+  Name?: String {"typeId": "Name"}
+|} {"label": "Contact",
+"typeId": "Contact"}
+
+
+

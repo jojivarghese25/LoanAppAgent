@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	
+	<sub-flow name="credit-score-flow" doc:id="ccab394a-d56e-4263-a8f3-49a0d78cbb7c" >
+		<logger level="INFO" doc:name="Start Logger" doc:id="f007d456-e26f-43a0-b4c9-fe1485c80a06" message="credit-score-flow stared"/>
+		<http:request method="POST" doc:name="Request to Experian Sapi" doc:id="3d36035a-6b20-4a86-8bae-e3ed9416d0a4" config-ref="experianRequestConfig" path="${experianSapi.creditscore}">
+			<http:headers ><![CDATA[#[output json ---
+{
+	"X-CLIENT-ID": "1234",
+	"X-CLIENT-SECRET": "12345"
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="End Logger" doc:id="1371bd6c-1e34-40f5-a3d5-9446a5c401d2" message="credit-score-flow ended"/>
+	</sub-flow>
+	<sub-flow name="docusign-flow" doc:id="707875fa-a4ec-4c2c-b352-f4ec639e5872" >
+		<logger level="INFO" doc:name="Start Logger" doc:id="e071cb6b-495d-4a4a-a284-87dd7354caed" message="docusign-flow start"/>
+		<ee:transform doc:name="request payload" doc:id="84adc189-02c7-4f91-bb5d-70b40dab4fc2" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="recipientName" ><![CDATA[payload.firstName]]></ee:set-variable>
+				<ee:set-variable variableName="emailID" ><![CDATA[%dw 2.0
+output application/json
+var emptyArray = []
+var defaultEmailId = p('docusign.emailId') splitBy  ","
+var emailIdArray = emptyArray + payload.emailId + defaultEmailId
+---
+flatten(emailIdArray)]]></ee:set-variable>
+				<ee:set-variable variableName="clientAccountId" ><![CDATA[payload.accountId]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<set-payload value='#[%dw 2.0&#10;import toBase64 from dw::core::Binaries&#10;var img = readUrl("classpath://logo.png", "application/octet-stream")&#10;output text/plain&#10;---&#10;toBase64(img as Binary)]' doc:name="logo img" doc:id="4a3d88ec-d09b-427a-ae59-0f8e9845c47c" />
+		<parse-template doc:name="html Template" doc:id="4a052cd2-bb3b-4748-b1fc-87b2e1f6cef2" >
+			<content >&lt;html&gt;
+&lt;head&gt;
+    &lt;style&gt;
+        #clientName, #date{
+                  font-size:22px;
+		  margin-top:50px;
+        }
+
+        #content-head{
+            line-height: 300%;
+        }
+        #content-subject{
+
+            font-size: 22px;
+        }
+        #container{
+            margin-left: 200px;
+            margin-right: 200px;
+            font-size: 22px;
+        }
+        #signature{
+            margin-top: 100px;
+            line-height: 2.8;
+        }
+        
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div name=&quot;logo&quot; align=&quot;center&quot;&gt;&lt;img src=&quot;data:image/jpeg;base64,#[payload]&quot;&gt;&lt;/div&gt;
+    &lt;div name=&quot;banner&quot; id=&quot;banner&quot; align=&quot;center&quot;&gt;&lt;h1&gt;&lt;u&gt;Consent Document&lt;/u&gt;&lt;/h1&gt;&lt;/div&gt;
+    &lt;div name=&quot;clientName&quot; id=&quot;clientName&quot; align=&quot;center&quot;&gt;&lt;b&gt;Account Holder&lt;/b&gt;: &lt;script language='javascript'&gt;document.write(#[vars.recipientName]);&lt;/script&gt;&lt;/div&gt;
+    &lt;div name=&quot;date&quot; id=&quot;date&quot; align=&quot;center&quot;&gt;&lt;b&gt;Date&lt;/b&gt;: &lt;script language=&quot;javascript&quot;&gt;d= new Date(); y=d.getFullYear(); m=d.getMonth()+1; day= d.getDate(); document.write(y+'/'+m+'/'+day);&lt;/script&gt;&lt;/div&gt;
+    &lt;div name=&quot;container&quot; id=&quot;container&quot;&gt;
+       
+        
+      
+        
+       &lt;div name='content-body' id=&quot;content-body&quot;&gt;  
+        
+       &lt;p&gt; By my signature below I,  &lt;script language='javascript'&gt;document.write(#[vars.recipientName]);&lt;/script&gt;, hereby authorize ABC Financial Services to obtain a Background Check and/or Consumer Credit Report on me. I have attached the necessary documents, including my photo ID document licence and Bank Account number for the purpose of verification of my credit score.&lt;/p&gt;&lt;/div&gt;
+       &lt;div name=&quot;signature&quot; id=&quot;signature&quot;&gt;Signature &lt;br&gt;&lt;br&gt;  &lt;script language='javascript'&gt;document.write(#[vars.recipientName]);&lt;/script&gt;&lt;/div&gt;
+    &lt;/div&gt;
+
+&lt;/body&gt;
+
+&lt;/html&gt;</content>
+		</parse-template>
+		<file:write doc:id="ca0dff18-e388-4586-b1dd-22991d76fc84" config-ref="File_Config" path="consent.html"/>
+		<file:read doc:name="Read" doc:id="846e676f-b142-4ad4-a5da-92723418abbf" config-ref="File_Config" path="consent.html"/>
+		<ee:transform doc:name="input to convert api" doc:id="339df00b-40cd-4117-a84e-17d5009d56a1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import * from dw::core::Binaries
+---
+{
+    "Parameters": [
+        {
+            "Name": "File",
+            "FileValue": {
+                "Name": "my_file.htm",
+                "Data": toBase64(payload)
+            }
+        },
+        {
+            "Name": "StoreFile",
+            "Value": true
+        }
+    ]
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="request-to-convert-api" doc:id="1d99af34-1cb1-4e85-81d1-7e2e51e77fb4" config-ref="convertApiRequestconfig" path="${convertAPI.path}">
+			<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"Secret" : p('convertAPI.secret')
+}]]]></http:query-params>
+		</http:request>
+		<http:request method="GET" doc:name="get PDF" doc:id="e45faa44-f439-4810-8624-d40311ae9169" url="#[payload.Files.Url[0]]" target="pdfPayload"/>
+		<foreach doc:name="For Each" doc:id="03168785-7ee9-40ad-a022-5022d803279e" collection="#[vars.emailID]" batchSize="${foreach.batchSize}">
+			<ee:transform doc:name="input-to-docusign" doc:id="c095231b-566b-4fee-8865-6b3227d175e9">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+
+output multipart/form-part
+---
+{
+    "parts": {
+        "RecipientEmail": {
+            "headers": {
+                "Content-Disposition": {
+                    "name": "RecipientEmail",
+                    "subtype": "form-data"
+                }
+            },
+            "content": payload
+        },
+        "Subject": {
+            "headers": {
+                "Content-Disposition": {
+                    "name": "Subject",
+                    "subtype": "form-data"
+                }
+            },
+            "content": "Loan Application Consent Letter of Id " ++ vars.'clientAccountId'
+        },
+        "Body": {
+            "headers": {
+                "Content-Disposition": {
+                    "name": "Body",
+                    "subtype": "form-data"
+                }
+            },
+            "content": "Please Sign the consent letter."
+        },
+        "DocumentID": {
+            "headers": {
+                "Content-Disposition": {
+                    "name": "DocumentID",
+                    "subtype": "form-data"
+                }
+            },
+            "content": "001"
+        },
+        "Document": {
+            "headers": {
+                "Content-Disposition": {
+                    "name": "Document",
+                    "filename": "consent_form",
+                    "subtype": "form-data"
+                },
+                "Content-Type": "application/pdf"
+            },
+            "content": vars.pdfPayload
+        },
+        "RecipientName": {
+            "headers": {
+                "Content-Disposition": {
+                    "name": "RecipientName",
+                    "subtype": "form-data"
+                }
+            },
+            "content": vars.recipientName
+        },
+        "RecipientId": {
+            "headers": {
+                "Content-Disposition": {
+                    "name": "RecipientId",
+                    "subtype": "form-data"
+                }
+            },
+            "content": vars.clientAccountId
+        }
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<http:request method="POST" doc:name="POST Document" doc:id="ca4b11d4-c2c1-4e07-87d3-d9120ec949e7" config-ref="docusignRequestConfig" path="${docusignSapi.postDocumentPath}">
+			<http:body><![CDATA[#[output multipart/form-data
+---
+payload]]]></http:body>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"X-CLIENT-SECRET" : p('docusignSapi.clientSecret'),
+	"X-CLIENT-ID" : p('docusignSapi.clientId')
+}]]]></http:headers>
+		</http:request>
+		</foreach>
+		<logger level="INFO" doc:name="End Logger" doc:id="fe388408-d207-4c65-b4bf-0e0ba88ff721" message="docusign-flow end"/>
+		
+	</sub-flow>
+	<!-- [STUDIO:"implementationFlow"]<flow name="implementationFlow" doc:id="5447f9e2-3fc1-442a-86d3-3be1b0a3f7ab" >
+		<http:listener doc:name="Listener" doc:id="e280b361-6707-4cb1-9382-ef5de73188f9" config-ref="wma-agentforce-loan-process-api" path="/loanQueries"/>
+		<logger level="INFO" doc:name="Logger" doc:id="25a5d49e-26f9-4ce2-aee1-ec68543ec041" message='"Start Home Loan flow"'/>
+		<set-payload value='#[output application/json&#10;&#45;&#45;-&#10;"response": [&#10;  {&#10;    "loan_type": "Home Loan",&#10;    "plan_name": "Premium Housing Plan",&#10;    "currency": ["USD", "EUR"&#93;,&#10;    "loan_amount": {&#10;      "min": {&#10;        "USD": 50000,&#10;        "EUR": 46000&#10;      },&#10;      "max": {&#10;        "USD": 500000,&#10;        "EUR": 460000&#10;      }&#10;    },&#10;    "tenure": {&#10;      "min_years": 5,&#10;      "max_years": 10&#10;    },&#10;    "interest_rate": {&#10;      "value": 7.5,&#10;      "type": "Fixed",&#10;      "unit": "APR"&#10;    },&#10;	"age_criteria":{&#10;	  "minimum_age": 21,&#10;	  "max_agen_loan_maturity": 65,&#10;	  "minimum_monthly_income": "1550 USD"&#10;	},&#10;    "processing_fee": {&#10;      "percentage": "1.5%",&#10;      "cap": {&#10;        "USD": 2000,&#10;        "EUR": 1840&#10;      }&#10;    },&#10;    "prepayment_penalty": "No penalty for prepayment"&#10;  },&#10;  {&#10;    "loan_type": "Home Loan",&#10;    "plan_name": "Long Term Housing Plan, Floating",&#10;    "currency": ["USD", "EUR"&#93;,&#10;    "loan_amount": {&#10;      "min": {&#10;        "USD": 50000,&#10;        "EUR": 46000&#10;      },&#10;      "max": {&#10;        "USD": 500000,&#10;        "EUR": 460000&#10;      }&#10;    },&#10;    "tenure": {&#10;      "min_years": 10,&#10;      "max_years": 30&#10;    },&#10;    "interest_rate": {&#10;      "value": 6.5,&#10;      "type": "Floating",&#10;      "unit": "APR"&#10;    },&#10;	"age_criteria":{&#10;	  "minimum_age": 21,&#10;	  "max_agen_loan_maturity": 65,&#10;	  "minimum_monthly_income": "1550 USD"&#10;	},&#10;    "processing_fee": {&#10;      "percentage": "1.5%",&#10;      "cap": {&#10;        "USD": 2500,&#10;        "EUR": 2300&#10;      }&#10;    },&#10;    "prepayment_penalty": "2% penalty if closed within 20 years"&#10;  },&#10;  {&#10;    "loan_type": "Home Loan",&#10;    "plan_name": "Long Term Housing Plan, Fixed",&#10;    "currency": ["USD", "EUR"&#93;,&#10;    "loan_amount": {&#10;      "min": {&#10;        "USD": 50000,&#10;        "EUR": 46000&#10;      },&#10;      "max": {&#10;        "USD": 500000,&#10;        "EUR": 460000&#10;      }&#10;    },&#10;    "tenure": {&#10;      "min_years": 10,&#10;      "max_years": 30&#10;    },&#10;    "interest_rate": {&#10;      "value": 6.55,&#10;      "type": "Fixed",&#10;      "unit": "APR"&#10;    },&#10;	"age_criteria":{&#10;	  "minimum_age": 21,&#10;	  "max_agen_loan_maturity": 65,&#10;	  "minimum_monthly_income": "1550 USD"&#10;	},&#10;    "processing_fee": {&#10;      "percentage": "1.5%",&#10;      "cap": {&#10;        "USD": 2500,&#10;        "EUR": 2300&#10;      }&#10;    },&#10;    "prepayment_penalty": "No penalty for prepayment"&#10;  },&#10;  {&#10;    "loan_type": "Car Loan",&#10;    "plan_name": "Standard Auto Finance",&#10;    "currency": ["EUR"&#93;,&#10;    "loan_amount": {&#10;      "min": {&#10;        "EUR": 5000&#10;      },&#10;      "max": {&#10;        "EUR": 75000&#10;      }&#10;    },&#10;    "tenure": {&#10;      "min_years": 1,&#10;      "max_years": 7&#10;    },&#10;    "interest_rate": {&#10;      "value": 5.5,&#10;      "type": "Fixed",&#10;      "unit": "APR"&#10;    },&#10;    "processing_fee": {&#10;      "percentage": "1%",&#10;      "cap": {&#10;        "EUR": 1000&#10;      }&#10;    },&#10;    "prepayment_penalty": "No penalty for prepayment",&#10;    "salary_criteria": {&#10;      "min_monthly_salary": {&#10;        "EUR": 1500&#10;      }&#10;    },&#10;    "age_criteria": {&#10;      "min_age": 21,&#10;      "max_age": 65&#10;    }&#10;  },&#10;  {&#10;    "loan_type": "Car Loan",&#10;    "plan_name": "Luxury Auto Finance",&#10;    "currency": ["EUR"&#93;,&#10;    "loan_amount": {&#10;      "min": {&#10;        "EUR": 25000&#10;      },&#10;      "max": {&#10;        "EUR": 150000&#10;      }&#10;    },&#10;    "tenure": {&#10;      "min_years": 2,&#10;      "max_years": 10&#10;    },&#10;    "interest_rate": {&#10;      "value": 4.8,&#10;      "type": "Fixed",&#10;      "unit": "APR"&#10;    },&#10;    "processing_fee": {&#10;      "percentage": "0.8%",&#10;      "cap": {&#10;        "EUR": 2500&#10;      }&#10;    },&#10;    "prepayment_penalty": "1% penalty if closed within 3 years",&#10;    "salary_criteria": {&#10;      "min_monthly_salary": {&#10;        "EUR": 3000&#10;      }&#10;    },&#10;    "age_criteria": {&#10;      "min_age": 25,&#10;      "max_age": 70&#10;    }&#10;  }&#10;&#93;&#93;' doc:name="Set Payload" doc:id="f6a2e7df-68b9-4762-9c00-2b8487958c92" />
+		<logger level="INFO" doc:name="Logger" doc:id="70cfb694-72cd-4c28-bc7e-e0ab0aafcf17" message='"End Home loan Process"'/>
+	</flow> [STUDIO] -->
+</mule>

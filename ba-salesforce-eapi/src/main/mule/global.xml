@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:idp-dl-extractor-120="http://www.mulesoft.org/schema/mule/idp-dl-extractor-120" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd  http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd  http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd  http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd  http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd http://www.mulesoft.org/schema/mule/idp-dl-extractor-120 http://www.mulesoft.org/schema/mule/idp-dl-extractor-120/current/mule-idp-dl-extractor-120.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+    <http:listener-config name="baSalesforceEapiHttpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="${https.port}" tlsContext="tlsContext" protocol="HTTPS" />
+    </http:listener-config>
+    <apikit:config name="baSalesforceEapiConfig" api="resource::aceb673b-30f8-4591-982c-8ed2cd883a70:ba-salesforce-eapi:1.0.1:raml:zip:ba-salesforce-eapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <tls:context name="tlsContext" doc:name="TLS Context" doc:id="6bceb4e8-21e0-417d-9201-d3781243b14f">
+        <tls:key-store type="jks" alias="${https.certs.alias}" keyPassword="${https.certs.password}" password="${https.certs.password}" path="${https.certs.path}" />
+    </tls:context>
+   
+    <configuration-properties doc:name="Configuration properties" doc:id="63f9d75e-90ca-4b5a-aca3-845a79bb558f" file="properties/${runtime.env}.yaml" />
+    <secure-properties:config name="securePropertiesConfig" doc:name="Secure Properties Config" doc:id="9b73ce7d-2779-455d-b08d-ee072ef0337a" file="properties/${runtime.env}.yaml" key="${secure.key}">
+        <secure-properties:encrypt algorithm="Blowfish" />
+    </secure-properties:config>
+    <global-property doc:name="Global Property" doc:id="7f39a852-fa5e-4ac8-9ae7-40013d7317e4" name="runtime.env" value="dev" />
+    <global-property doc:name="Global Property" doc:id="817282d0-0517-412c-a6f4-da906f81537f" name="secure.key" value="${secure.key}" />
+    <http:request-config name="cardPapiRequestConfig" doc:name="HTTP Request configuration" doc:id="3de20c2b-4b7e-4546-866c-662631b4e1cd" basePath="${cardPapi.api}">
+        <http:request-connection protocol="${cardPapi.protocol}" host="${cardPapi.host}" />
+    </http:request-config>
+    <validation:config name="validationConfig" doc:name="Validation Config" doc:id="b480d987-fd3f-422f-a16e-30af63b324ac" />
+    <http:request-config name="loanPapiRequestConfig" doc:name="HTTP Request configuration" doc:id="683acb85-2016-4432-8e1a-05f0a3d744af" basePath="${loanPapi.api}">
+        <http:request-connection protocol="HTTPS" host="${loanPapi.host}" connectionIdleTimeout="60000" />
+    </http:request-config>
+    <http:request-config name="notificationSapirequestSapi" doc:name="HTTP Request configuration" doc:id="7b7a1865-da6b-47a0-9a29-3a6dfc6e98c2" basePath="${notificationSapi.api}">
+        <http:request-connection protocol="HTTPS" host="${notificationSapi.host}" />
+    </http:request-config>
+    <http:request-config name="salesforceSapiRequestconfig" doc:name="HTTP Request configuration" doc:id="822f1efd-7680-4416-aa61-ea957ef20eb7" basePath="${salesforceSapi.api}">
+        <http:request-connection protocol="HTTPS" host="${salesforceSapi.host}" />
+    </http:request-config>
+    <idp-dl-extractor-120:config name="IDP___DL_extractor___1_2_0_Config" doc:name="IDP - DL-extractor - 1.2.0 Config" doc:id="e323e977-431f-4bde-833c-670084150b3e" property_host="${idp.host}" property_port="${idp.port}" property_protocol="HTTPS" property_client-id="${secure::idp.clientId}" property_client-secret="${secure::idp.clientSecret}" />
+	<salesforce:sfdc-config name="salesforceConfig" doc:name="Salesforce Config" doc:id="0fa4428c-4ee8-4dd5-baa8-6d37a12496cf" >
+		<salesforce:basic-connection username="${sf.username}" password="${sf.password}" />
+	
+	</salesforce:sfdc-config>
+</mule>

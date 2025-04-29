@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	
+	
+	<sub-flow name="oauth-flow" doc:id="0c4592e8-f895-47a1-8780-599b48398191" >
+		<ee:transform doc:name="attributes vars" doc:id="103e1a8e-6dad-4073-8f78-a5c900c56797">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[attributes.headers.correlationId default correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="component"><![CDATA[flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="flow-entry-logger-sub-flow" doc:id="723ab154-5780-4ee9-a241-6e23e3188107" name="flow-entry-logger-sub-flow"/>
+		<ee:transform doc:name="App credentials" doc:id="e9cbf16c-c5c3-48d1-b3b8-a4d4ac1dda33" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="credentials" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    username: p('experian.oauth.username'),
+    password: p('experian.oauth.password'),
+    client_id: p('experian.oauth.clientId'),
+    client_secret: p('experian.oauth.clientSecret')
+    
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<http:request method="${experian.method}" doc:name="experian-oauth-token-request" doc:id="af9ca9db-7916-4042-b94c-5b77ea06b190" config-ref="HTTP_Request_configuration" path="${experian.oauth.path}" target="token" targetValue="#[payload.access_token]">
+			<http:body ><![CDATA[#[vars.credentials]]]></http:body>
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Grant_type" : "password",
+	"Accept" : "application/json",
+	"Content-type" : "application/json"
+}]]]></http:headers>
+		</http:request>
+		<flow-ref doc:name="flow-complete-logger-sub-flow" doc:id="77596986-bbe7-49a1-b4ef-59e73ff436e5" name="flow-complete-logger-sub-flow"/>
+	</sub-flow>
+	<sub-flow name="credit-score-flow" doc:id="ccab394a-d56e-4263-a8f3-49a0d78cbb7c" >
+		<ee:transform doc:name="attributes vars" doc:id="87d6d582-2ff9-46ef-a7d5-6d356fa6dbac">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[attributes.headers.correlationId default correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="component"><![CDATA[flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="flow-entry-logger-sub-flow" doc:id="a63569d8-1e4c-4c7e-89b8-390781cf31d7" name="flow-entry-logger-sub-flow" />
+		<choice doc:name="Choice" doc:id="b629d099-d97a-473f-b244-a9122b1183a7" >
+			<when expression="#[((vars.originalPayload.header.options.salary &gt; p('customer.salary')) and (vars.originalPayload.header.options.currency == p('customer.currency')) and (vars.originalPayload.header.options.occupationType != p('customer.occupationType')) )]">
+				<flow-ref doc:name="credit-score-experian-flow" doc:id="9ea8b9bc-3e1a-4792-bb11-6a650e89e91f" name="credit-score-experian-flow"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="response" doc:id="be5fda20-7596-498e-956c-9e684b34ddfb" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"loanRequest": "REJECT",
+	"reasonForRejection": "salary should be >1500 USD and customer shouldn't be an part time employee",
+	"salary": vars.originalPayload.header.options.salary,
+	"currency": vars.originalPayload.header.options.currency,
+	"occupationType": vars.originalPayload.header.options.occupationType
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<flow-ref doc:name="flow-complete-logger-sub-flow" doc:id="aed1ad0e-4012-466a-bd82-05ce97f7d9a7" name="flow-complete-logger-sub-flow" />
+	</sub-flow>
+	<sub-flow name="credit-score-experian-flow" doc:id="57eba448-91be-46e1-b664-e2f92a2caa2b" >
+		<ee:transform doc:name="experain payload" doc:id="ffb28a0d-5bad-4df4-b3d1-f1ffd3fa9a98" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "header": {
+        "tenantId": "c7f8f55045884847b993d81ca8cdaf",
+        "requestType": "UKCCIS-Devportal",
+        "clientReferenceId": "TEST-123-124",
+        "expRequestId": "",
+        "messageTime": "2022-05-19T16:01:53.0000000+00:00",
+        "txnId": "",
+        "time": "",
+        "options": {}
+    },
+    "payload": {
+        "control": [
+            {
+                "option": "KYC_CLIENTTIERVERSION",
+                "value": "version1"
+            }
+        ],
+        "contacts": [
+            {
+                "id": "MAINCONTACT_1",
+                "person": {
+                    "personDetails": {
+                        "dateOfBirth": "1969-01-25"
+                    },
+                    "typeOfPerson": "APPLICANT",
+                    "personIdentifier": "P12345",
+                    "names": [
+                        {
+                            "id": "MAINPERSONNAME_1",
+                            "type": "CURRENT",
+                            "title": "MR",
+                            "firstName": "NEIL",
+                            "middleNames": "",
+                            "initials": "",
+                            "surName": "CATHPOLE",
+                            "namePrefix": "",
+                            "nameSuffix": ""
+                        }
+                    ]
+                },
+                "addresses": [
+                    {
+                        "id": "MAINAPPADDRESS_1",
+                        "addressIdentifier": "ADDRESS_1",
+                        "indicator": "RESIDENTIAL",
+                        "addressType": "CURRENT",
+                        "poBoxNumber": "",
+                        "subBuilding": "",
+                        "buildingName": "",
+                        "buildingNumber": "1A",
+                        "street": "GEORGE SQUAR",
+                        "street2": "",
+                        "subLocality": "",
+                        "locality": "",
+                        "postTown": "INVERURI",
+                        "county": "ABERDEENSHIRE",
+                        "postal": "AB51 3XX",
+                        "stateProvinceCode": "",
+                        "countryCode": "GBR",
+                        "residentFrom": {
+                            "fullDateFrom": "2019-01-01",
+                            "yearFrom": "2019",
+                            "monthFrom": "01",
+                            "dayFrom": "01"
+                        },
+                        "residentTo": {
+                            "fullDateTo": "2020-01-01",
+                            "yearTo": "2020",
+                            "monthTo": "01",
+                            "dayTo": "01"
+                        },
+                        "timeAtAddress": {
+                            "value": "365",
+                            "unit": "DAYS"
+                        }
+                    }
+                ]
+            }
+        ],
+        "application": {
+            "applicants": [
+                {
+                    "id": "APPLICANT_1",
+                    "contactId": "MAINCONTACT_1",
+                    "type": "INDIVIDUAL",
+                    "applicantType": "APPLICANT",
+                    "consent": true,
+                    "knownCustomer": true
+                }
+            ]
+        }
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="after-transform-message-logger-sub-flow" doc:id="4cebb832-af77-46d7-8c54-b8b5e77afb32" name="after-transform-message-logger-sub-flow"/>
+		<http:request method="${experian.method}" doc:name="experain-credit-score-request" doc:id="7df66b89-ceb4-4c4a-b6c8-3a641f868edb" config-ref="HTTP_Request_configuration" path="${experian.credit.path}">
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : ("Bearer " ++ (vars.token as String)),
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="payload" doc:id="5fcaaea4-732d-442a-87ed-d3fcf96bbc08">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+//var rand=randomInt(999)
+fun calculateCreditScore(customerSalaryDeclared) = (((customerSalaryDeclared) - p('customer.salary'))/10) + p('credit.score')
+---
+{
+firstName: vars.originalPayload.payload.contacts[0].person.names[0].firstName default "",
+surName: vars.originalPayload.payload.contacts[0].person.names[0].surName default "",
+overallResponse: payload.responseHeader.overallResponse.decision default "STOP",
+decisionReasons: payload.responseHeader.overallResponse.decisionReasons default "",
+creditScore: if ((vars.originalPayload.header.options.salary)<= p('customer.salary')) p('credit.score') else calculateCreditScore(vars.originalPayload.header.options.salary),
+//creditScore: (if(vars.originalPayload.header.options.salary <p('credit.score')) p('credit.score') else rand) as String,
+address:
+	{
+		street: vars.originalPayload.payload.contacts.addresses[0].street[0] default "",
+		city: lower(vars.originalPayload.payload.contacts.addresses[0].postTown[0] default ""),
+		postal: vars.originalPayload.payload.contacts.addresses[0].postal[0] default "",
+		countryCode: vars.originalPayload.payload.contacts.addresses[0].countryCode[0] default ""
+	}
+
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="d72a1b5d-4800-46a1-a59f-af439e4cc06a">
+			<when expression="#[(payload.creditScore &gt; p('credit.score')) and (payload.overallResponse == p('overallResponse.CONTINUE') or payload.overallResponse == p('overallResponse.ACCEPT') or payload.overallResponse == p('overallResponse.REFER'))]">
+				<ee:transform doc:name="accept-response-payload" doc:id="e61aae0a-6a8a-4595-87ea-9c75cf066013">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"loanRequest": "ACCEPT",
+	"creditScore": payload.creditScore,
+	"identityVerificationResponse": payload.overallResponse,
+	"identityVerificationDecisionReasons": payload.decisionReasons
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="reject-response-payload" doc:id="adfd84ec-a402-4fc4-ae9c-41337ab70fb0">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"loanRequest": "REJECT",
+	"creditScore": payload.creditScore,
+	"identityVerificationResponse": payload.overallResponse,
+	"identityVerificationDecisionReasons": payload.decisionReasons
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<flow-ref doc:name="response-returned-logger-sub-flow" doc:id="d2306346-9bbb-4230-952b-edc05ee71ba9" name="response-returned-logger-sub-flow" />
+	</sub-flow>
+	<flow name="implementationFlow" doc:id="5447f9e2-3fc1-442a-86d3-3be1b0a3f7ab" >
+		<http:listener doc:name="Listener" doc:id="e280b361-6707-4cb1-9382-ef5de73188f9" config-ref="baexperianSapiHttpListenerConfig" path="/loanQueries"/>
+		<logger level="INFO" doc:name="Logger" doc:id="25a5d49e-26f9-4ce2-aee1-ec68543ec041" message='#["Start Home Loan flow"]'/>
+		<set-payload value='#[output application/json&#10;---&#10;"response": [&#10;  {&#10;    "loan_type": "Home Loan",&#10;    "plan_name": "Premium Housing Plan",&#10;    "currency": ["USD", "EUR"],&#10;    "loan_amount": {&#10;      "min": {&#10;        "USD": 50000,&#10;        "EUR": 46000&#10;      },&#10;      "max": {&#10;        "USD": 500000,&#10;        "EUR": 460000&#10;      }&#10;    },&#10;    "tenure": {&#10;      "min_years": 5,&#10;      "max_years": 10&#10;    },&#10;    "interest_rate": {&#10;      "value": 7.5,&#10;      "type": "Fixed",&#10;      "unit": "APR"&#10;    },&#10;	"age_criteria":{&#10;	  "minimum_age": 21,&#10;	  "max_agen_loan_maturity": 65,&#10;	  "minimum_monthly_income": "1550 USD"&#10;	},&#10;    "processing_fee": {&#10;      "percentage": "1.5%",&#10;      "cap": {&#10;        "USD": 2000,&#10;        "EUR": 1840&#10;      }&#10;    },&#10;    "prepayment_penalty": "No penalty for prepayment"&#10;  },&#10;  {&#10;    "loan_type": "Home Loan",&#10;    "plan_name": "Long Term Housing Plan, Floating",&#10;    "currency": ["USD", "EUR"],&#10;    "loan_amount": {&#10;      "min": {&#10;        "USD": 50000,&#10;        "EUR": 46000&#10;      },&#10;      "max": {&#10;        "USD": 500000,&#10;        "EUR": 460000&#10;      }&#10;    },&#10;    "tenure": {&#10;      "min_years": 10,&#10;      "max_years": 30&#10;    },&#10;    "interest_rate": {&#10;      "value": 6.5,&#10;      "type": "Floating",&#10;      "unit": "APR"&#10;    },&#10;	"age_criteria":{&#10;	  "minimum_age": 21,&#10;	  "max_agen_loan_maturity": 65,&#10;	  "minimum_monthly_income": "1550 USD"&#10;	},&#10;    "processing_fee": {&#10;      "percentage": "1.5%",&#10;      "cap": {&#10;        "USD": 2500,&#10;        "EUR": 2300&#10;      }&#10;    },&#10;    "prepayment_penalty": "2% penalty if closed within 20 years"&#10;  },&#10;  {&#10;    "loan_type": "Home Loan",&#10;    "plan_name": "Long Term Housing Plan, Fixed",&#10;    "currency": ["USD", "EUR"],&#10;    "loan_amount": {&#10;      "min": {&#10;        "USD": 50000,&#10;        "EUR": 46000&#10;      },&#10;      "max": {&#10;        "USD": 500000,&#10;        "EUR": 460000&#10;      }&#10;    },&#10;    "tenure": {&#10;      "min_years": 10,&#10;      "max_years": 30&#10;    },&#10;    "interest_rate": {&#10;      "value": 6.55,&#10;      "type": "Fixed",&#10;      "unit": "APR"&#10;    },&#10;	"age_criteria":{&#10;	  "minimum_age": 21,&#10;	  "max_agen_loan_maturity": 65,&#10;	  "minimum_monthly_income": "1550 USD"&#10;	},&#10;    "processing_fee": {&#10;      "percentage": "1.5%",&#10;      "cap": {&#10;        "USD": 2500,&#10;        "EUR": 2300&#10;      }&#10;    },&#10;    "prepayment_penalty": "No penalty for prepayment"&#10;  },&#10;  {&#10;    "loan_type": "Car Loan",&#10;    "plan_name": "Standard Auto Finance",&#10;    "currency": ["EUR"],&#10;    "loan_amount": {&#10;      "min": {&#10;        "EUR": 5000&#10;      },&#10;      "max": {&#10;        "EUR": 75000&#10;      }&#10;    },&#10;    "tenure": {&#10;      "min_years": 1,&#10;      "max_years": 7&#10;    },&#10;    "interest_rate": {&#10;      "value": 5.5,&#10;      "type": "Fixed",&#10;      "unit": "APR"&#10;    },&#10;    "processing_fee": {&#10;      "percentage": "1%",&#10;      "cap": {&#10;        "EUR": 1000&#10;      }&#10;    },&#10;    "prepayment_penalty": "No penalty for prepayment",&#10;    "salary_criteria": {&#10;      "min_monthly_salary": {&#10;        "EUR": 1500&#10;      }&#10;    },&#10;    "age_criteria": {&#10;      "min_age": 21,&#10;      "max_age": 65&#10;    }&#10;  },&#10;  {&#10;    "loan_type": "Car Loan",&#10;    "plan_name": "Luxury Auto Finance",&#10;    "currency": ["EUR"],&#10;    "loan_amount": {&#10;      "min": {&#10;        "EUR": 25000&#10;      },&#10;      "max": {&#10;        "EUR": 150000&#10;      }&#10;    },&#10;    "tenure": {&#10;      "min_years": 2,&#10;      "max_years": 10&#10;    },&#10;    "interest_rate": {&#10;      "value": 4.8,&#10;      "type": "Fixed",&#10;      "unit": "APR"&#10;    },&#10;    "processing_fee": {&#10;      "percentage": "0.8%",&#10;      "cap": {&#10;        "EUR": 2500&#10;      }&#10;    },&#10;    "prepayment_penalty": "1% penalty if closed within 3 years",&#10;    "salary_criteria": {&#10;      "min_monthly_salary": {&#10;        "EUR": 3000&#10;      }&#10;    },&#10;    "age_criteria": {&#10;      "min_age": 25,&#10;      "max_age": 70&#10;    }&#10;  }&#10;]]' doc:name="Set Payload" doc:id="f6a2e7df-68b9-4762-9c00-2b8487958c92" />
+		<logger level="INFO" doc:name="Logger" doc:id="70cfb694-72cd-4c28-bc7e-e0ab0aafcf17" message='#["End Home loan Process"]'/>
+	</flow>
+</mule>

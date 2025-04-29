@@ -1,0 +1,10 @@
+%dw 2.0
+
+type auto_3981e395_6026_43dd_9891_9ea0d4b2376a_Output_Payload = {
+  envelopeId: String, 
+  statusDateTime: String, 
+  uri: String, 
+  status: String, 
+  _?: Any
+}
+

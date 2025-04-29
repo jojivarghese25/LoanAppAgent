@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:docusign="http://www.mulesoft.org/schema/mule/docusign" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/docusign http://www.mulesoft.org/schema/mule/docusign/current/mule-docusign.xsd">
+	<flow name="create-documents-flow" doc:id="88df73a8-3da2-4804-9544-ea28ff780671" >
+		<ee:transform doc:name="vars" doc:id="011caf1e-8936-41dd-bb0e-05c029551400" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="correlationId" ><![CDATA[attributes.headers.correlationId default correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="component" ><![CDATA[flow.name]]></ee:set-variable>
+			
+</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="flow-entry-logger-sub-flow" doc:id="42d4a5c1-a0fd-494c-b69c-18050b8df97e" name="flow-entry-logger-sub-flow"/>
+		<ee:transform doc:name="Input JSON" doc:id="4186fb6b-dbb6-44f9-947f-2f398042f575" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[output application/json
+import * from dw::core::Binaries
+---
+{
+  "emailSubject": payload.parts.Subject.content,
+  "emailBlurb": payload.parts.Body.content,
+  "status": "sent",
+  "recipients": {
+    "signers": [
+      {
+      	"documentId": "001",
+        "email": payload.parts.RecipientEmail.content,
+        "name": payload.parts.RecipientName.content,
+        "recipientId": "1",
+        "tabs": {
+          "signHereTabs": [
+            {
+              "pageNumber": "1",
+              "xPosition": "100",
+              "yPosition": "100"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "documents": [
+    {
+      "documentId": "001",
+      "name": payload.parts.Document.headers."Content-Disposition".filename,
+      "documentBase64": toBase64(payload.parts.Document.content)
+    }
+  ]
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<docusign:create-v21-accounts-envelopes-by-account-id doc:name="Envelopes Post Envelopes" doc:id="7d92ca14-0487-4391-a38b-e25baf1cde7c" config-ref="docusignConnectorConfig" accountId="${secure::docusign.account_id}"/>
+		<flow-ref doc:name="flow-complete-logger-sub-flow" doc:id="2fad5410-1dc6-46e5-8f12-f40b04b0e0d0" name="flow-complete-logger-sub-flow"/>
+	
+</flow>
+	<flow name="retrieve-documents-flow" doc:id="fcc67c3f-fe23-4930-a1ff-23278904355e" >
+		<ee:transform doc:name="vars" doc:id="6dd80007-604d-4a5d-8da3-4b431406bca9">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[attributes.headers.correlationId default correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="component"><![CDATA[flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="flow-entry-logger-sub-flow" doc:id="97845f3e-c2c5-4ea3-adf6-96d09a3c1b9c" name="flow-entry-logger-sub-flow" />
+		<docusign:get-v21-accounts-envelopes-documents-by-account-id-envelope-id-document-id doc:name="Documents Get Document" doc:id="3719b273-b20a-4df6-8553-8b346e220eee" config-ref="docusignConnectorConfig" accountId="${secure::docusign.account_id}" envelopeId="#[attributes.queryParams.envelopeId]" documentId="001"/>
+		<flow-ref doc:name="flow-complete-logger-sub-flow" doc:id="5a333730-ef14-454a-99b4-26620ba11f9b" name="flow-complete-logger-sub-flow" />
+	
+</flow>
+	<flow name="retrieve-envelope-status-flow" doc:id="37839fed-81d4-44fd-8d6c-b1595758a652" >
+		<ee:transform doc:name="vars" doc:id="b1f5362b-100a-46c6-8a16-08cb8ef0e76e">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[attributes.headers.correlationId default correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="component"><![CDATA[flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="flow-entry-logger-sub-flow" doc:id="8991b693-987c-48c4-b9e6-e239f466c08d" name="flow-entry-logger-sub-flow" />
+		<docusign:get-v21-accounts-envelopes-by-account-id-envelope-id doc:name="Envelopes Get Envelope" doc:id="9cfdf391-7d0c-49f6-b359-0fdc4e4b9a35" config-ref="docusignConnectorConfig" accountId="${secure::docusign.account_id}" envelopeId="#[attributes.uriParams.id]"/>
+		<ee:transform doc:name="result" doc:id="4fb412f7-9429-43df-b163-79ebe0965d7b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	status: payload.status
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="flow-complete-logger-sub-flow" doc:id="8675f85d-9652-443d-9c86-7125a4a74c05" name="flow-complete-logger-sub-flow" />
+	
+</flow>
+</mule>

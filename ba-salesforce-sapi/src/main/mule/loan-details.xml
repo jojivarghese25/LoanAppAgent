@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="get-loan-details" doc:id="6d698573-e268-43c2-8b36-89741d851791" >
+		<ee:transform doc:name="attributes vars" doc:id="bc609000-dfe7-4453-a439-5171cbc1cdfb">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[attributes.headers.correlationId default correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="component"><![CDATA[flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="flow-entry-logger-sub-flow" doc:id="77ec7214-c89e-4c71-bef6-38919a52d333" name="flow-entry-logger-sub-flow"/>
+		<set-variable value="#[attributes.queryParams.contactId]" doc:name="Set Variable" doc:id="87477adf-3f02-4324-b902-04d1b9622ac8" variableName="contactIdVar"/>
+		<salesforce:query doc:id="826914d5-2523-4559-9433-891bd756a79b" config-ref="Salesforce_Config_loan" target="loanRecord" doc:name="Query LoanStatusObject">
+			<salesforce:salesforce-query><![CDATA[SELECT ID,LoanAmount__c from LoanStatusObject__c where ContactId__c = ':contactId']]></salesforce:salesforce-query>
+			<salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	"contactId" : vars.contactIdVar
+}]]]></salesforce:parameters>
+		</salesforce:query>
+		<ee:transform doc:name="Transform Message" doc:id="33ac807e-bea6-4d15-86f8-524ff6f53d12" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.loanRecord]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="flow-complete-logger-sub-flow" doc:id="2633949e-cd04-4eb1-abc9-30a95584fb7f" name="flow-complete-logger-sub-flow"/>
+	</sub-flow>
+	<sub-flow name="update-loan-details" doc:id="298de5ba-6a74-4aa4-9c26-6b407d65d0ad" >
+		<ee:transform doc:name="attributes vars" doc:id="fcfc80e8-1f31-4c3e-a0c4-303352f56005">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[attributes.headers.correlationId default correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="component"><![CDATA[flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="flow-entry-logger-sub-flow" doc:id="3799d211-4ee1-4d46-b3a8-34311ed199f5" name="flow-entry-logger-sub-flow" />
+		<ee:transform doc:name="Data Mapping" doc:id="2a3fa62a-3119-4c62-9fb8-120ac0730d53" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map ({
+	"ProofDocument__c": $.proofDocument,
+	"ProofId__c": $.proofId,
+	"Id": $.id,
+	"LoanStatus__c": $.loanStatus	
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:update type="LoanStatusObject__c" doc:id="7261389e-78ee-440a-aeb6-7c92e198fbfb" config-ref="Salesforce_Config_loan" doc:name="Update LoanStatusObject" />
+		<ee:transform doc:name="Response" doc:id="e33e2033-310a-487e-a447-acc9e5ddaf13" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="flow-complete-logger-sub-flow" doc:id="fc81f12b-dae7-4aac-87ae-469e4e336f0a" name="flow-complete-logger-sub-flow" />
+	</sub-flow>
+</mule>

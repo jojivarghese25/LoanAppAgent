@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+   
+      <flow name="ba-loan-process-papi-main">
+        <http:listener config-ref="baLoanProcesstPapiHttpListenerConfig" path="${https.path}">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="baLoanProcessPapiConfig" />
+    </flow>
+    <flow name="post:\creditscore:application\json:baLoanProcessPapiConfig">
+        <!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+  header: {
+    tenantId: "c7f8f55045884847b993d81ca8cdaf",
+    requestType: "UKCCIS-QA",
+    clientReferenceId: "TEST-123-124",
+    expRequestId: "",
+    messageTime: "2022-05-19T16:01:53Z",
+    txnId: "",
+    time: "",
+    options: {}
+  },
+  payload: {
+    control: [
+      {
+        option: "KYC_CLIENTTIERVERSION",
+        value: "version1"
+      }
+    &#93;,
+    contacts: [
+      {
+        id: "MAINCONTACT_1",
+        person: {
+          personDetails: {
+            dateOfBirth: "1984-01-14"
+          },
+          typeOfPerson: "APPLICANT",
+          personIdentifier: "P12345",
+          names: [
+            {
+              id: "MAINPERSONNAME_1",
+              "type": "CURRENT",
+              title: "MR",
+              firstName: "JANOS",
+              middleNames: "",
+              initials: "",
+              surName: "ABYAN",
+              namePrefix: "",
+              nameSuffix: ""
+            }
+          &#93;
+        },
+        addresses: [
+          {
+            id: "MAINAPPADDRESS_1",
+            addressIdentifier: "ADDRESS_1",
+            indicator: "RESIDENTIAL",
+            addressType: "CURRENT",
+            poBoxNumber: "",
+            subBuilding: "",
+            buildingName: "",
+            buildingNumber: "5",
+            street: "HONEYBORNE ROAD",
+            street2: "",
+            subLocality: "",
+            locality: "",
+            postTown: "SUTTON COLDFIELD",
+            county: "WEST MIDLANDS",
+            postal: "B75 6BT",
+            stateProvinceCode: "",
+            countryCode: "GBR",
+            residentFrom: {
+              fullDateFrom: "2019-01-01",
+              yearFrom: "2019",
+              monthFrom: "01",
+              dayFrom: "01"
+            },
+            residentTo: {
+              fullDateTo: "2020-01-01",
+              yearTo: "2020",
+              monthTo: "01",
+              dayTo: "01"
+            },
+            timeAtAddress: {
+              value: "365",
+              unit: "DAYS"
+            }
+          }
+        &#93;
+      }
+    &#93;,
+    application: {
+      applicants: [
+        {
+          id: "APPLICANT_1",
+          contactId: "MAINCONTACT_1",
+          "type": "INDIVIDUAL",
+          applicantType: "APPLICANT",
+          consent: true,
+          knownCustomer: true
+        }
+      &#93;
+    }
+  }
+} as Object {encoding: "UTF-8", mediaType: "application/json"}&#93;&#93;></ee:set-payload>
+            </ee:message>
+        </ee:transform> [STUDIO] -->
+		<flow-ref doc:name="credit-score-flow" doc:id="44148292-63af-433a-a334-132ce4a54f1b" name="credit-score-flow"/>
+    </flow>
+    <flow name="post:\documentsign:application\json:baLoanProcessPapiConfig">
+        <!-- [STUDIO:"Transform Message"]<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+  envelopeId: "247ed35c-d388-4944-a9fe-9e1889959f51",
+  uri: "/envelopes/247ed35c-d388-4944-a9fe-9e1889959f51",
+  statusDateTime: "2025-02-04T08:47:28.8700000Z",
+  status: "sent"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}&#93;&#93;></ee:set-payload>
+            </ee:message>
+        </ee:transform> [STUDIO] -->
+		<flow-ref doc:name="docusign-flow" doc:id="b3609dd4-9a2c-4286-ac79-2017ac4839fe" name="docusign-flow" />
+    </flow>
+</mule>

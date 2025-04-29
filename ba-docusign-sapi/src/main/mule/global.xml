@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:docusign="http://www.mulesoft.org/schema/mule/docusign" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/docusign http://www.mulesoft.org/schema/mule/docusign/current/mule-docusign.xsd http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd">
+    <http:listener-config name="apiHttpListenerConfig" doc:name="HTTP Listener config" doc:id="f753b240-dc67-448c-8b55-b4c693805db7">
+        <http:listener-connection host="0.0.0.0" port="${https.port}" protocol="HTTPS" tlsContext="tlsContext" />
+    </http:listener-config>
+    <secure-properties:config name="securePropertiesConfig" doc:name="Secure Properties Config" doc:id="38d47e86-e552-49f6-858e-76026c1edda2" file="properties/secure-${mule.env}.yaml" key="${secure.key}">
+        <secure-properties:encrypt algorithm="Blowfish" />
+    </secure-properties:config>
+    <docusign:config name="docusignConnectorConfig" doc:name="Docusign Connector Config" doc:id="fc73f4bb-29bb-47eb-9719-c5027cfaad49">
+        <docusign:oauth-connection baseUri="https://demo.docusign.net/restapi">
+            <docusign:oauth-authorization-code consumerKey="${secure::docusign.consumer_key}" consumerSecret="${secure::docusign.consumer_secret}" />
+            <docusign:oauth-callback-config listenerConfig="apiHttpListenerConfig" callbackPath="/callback" authorizePath="/authorize" externalCallbackUrl="https://ba-docusign-sapi.us-e2.cloudhub.io/callback" />
+        </docusign:oauth-connection>
+    </docusign:config>
+    <global-property doc:name="Global Property" doc:id="474fbd32-4dda-486b-b22d-e5dbd6c6928a" name="mule.env" value="dev" />
+    <global-property doc:name="Global Property" doc:id="8211737d-c50c-46f0-a5ac-597ed5519de0" name="secure.key" value="${secure.key}" />
+    <configuration-properties doc:name="commonConfigurationProperties" doc:id="d3af7ee5-e848-4430-ab46-55baba62039f" file="properties\common-properties.yaml" />
+    <configuration-properties doc:name="envConfigurationProperties" doc:id="1ab1bdbe-0466-40c6-9635-b821293a65c2" file="properties/secure-${mule.env}.yaml" />
+    <tls:context name="tlsContext" doc:name="TLS Context" doc:id="3be6ca81-a779-4635-aaea-4349ec246e69">
+        <tls:key-store type="${tls.keystore.type}" path="${tls.keystore.path}" keyPassword="${secure::tls.keystore.password}" password="${secure::tls.keystore.password}" />
+    </tls:context>
+    <!-- <api-gateway:autodiscovery apiId="${api.id}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="ae218d40-ef2f-47d8-8fe2-3d2d1892974a" flowRef="njc-wma-docusign-sapi-v1-main" /> -->
+	<configuration-properties doc:name="configurationProperties" doc:id="5b67d53b-ecec-40e0-b480-5b43f3e5071c" file="properties\secure-dev.yaml" />
+    <apikit:config name="ba-docusign-sapi-config" api="resource::aceb673b-30f8-4591-982c-8ed2cd883a70:ba-docusign-sapi:1.0.0:raml:zip:ba-docusign-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+
+</mule>

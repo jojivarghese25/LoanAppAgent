@@ -1,0 +1,39 @@
+http.port : "8081"
+https:
+  port: "8082"
+  path: "/api/v1/*"
+  certs:
+    alias: "mule"
+    password: "njclabs@openbank"
+    
+
+
+sf:
+  username: "sneha.ek@njclabs.com2025/01/16"
+  password: "Njclabs@123"
+    
+        
+transaction.mode: "CreditCard"  
+
+creditCardStatus: "Active"
+newCreditCardRequested : "yes"
+deactivateCreditCard : "yes"
+oldCreditCardStatus: "De-activate"
+
+
+tracePoint:
+  request: "REQUEST_RECEIVED"
+  response: "RESPONSE_RETURNED"
+  entry: "FLOW_ENTRY"
+  complete: "FLOW_COMPLETE"
+  info: "PROCESS_INFO"
+  before.outbound: "BEFORE_OUTBOUND"
+  after.outbound: "AFTER_OUTBOUND"
+  before.transform: "BEFORE_TRANSFORM_MESSAGE" 
+  after.transform: "AFTER_TRANSFORM_MESSAGE"
+  error: "ERROR"
+priority:
+  info: "INFO"
+  debug: "DEBUG"
+  error: "ERROR"
+env: "dev"

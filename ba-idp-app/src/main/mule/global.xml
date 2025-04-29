@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:idp-dl-extractor-120="http://www.mulesoft.org/schema/mule/idp-dl-extractor-120"
+	xmlns:idp-document-extractor-100="http://www.mulesoft.org/schema/mule/idp-document-extractor-100"
+	xmlns:idp-dl-extractor-110="http://www.mulesoft.org/schema/mule/idp-dl-extractor-110"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:idp-dl-extractor-100="http://www.mulesoft.org/schema/mule/idp-dl-extractor-100" xmlns:idp-ndac-po-demo-140="http://www.mulesoft.org/schema/mule/idp-ndac-po-demo-140"
+	xmlns:idp-ndac-po-demo-130="http://www.mulesoft.org/schema/mule/idp-ndac-po-demo-130"
+	xmlns:idp-ndac-po-demo-120="http://www.mulesoft.org/schema/mule/idp-ndac-po-demo-120" xmlns:idp-ndac-po-demo-110="http://www.mulesoft.org/schema/mule/idp-ndac-po-demo-110" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:idp-marketing-leads-100="http://www.mulesoft.org/schema/mule/idp-marketing-leads-100" xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/idp-marketing-leads-100 http://www.mulesoft.org/schema/mule/idp-marketing-leads-100/current/mule-idp-marketing-leads-100.xsd
+http://www.mulesoft.org/schema/mule/idp-ndac-po-demo-110 http://www.mulesoft.org/schema/mule/idp-ndac-po-demo-110/current/mule-idp-ndac-po-demo-110.xsd
+http://www.mulesoft.org/schema/mule/idp-ndac-po-demo-120 http://www.mulesoft.org/schema/mule/idp-ndac-po-demo-120/current/mule-idp-ndac-po-demo-120.xsd
+http://www.mulesoft.org/schema/mule/idp-ndac-po-demo-130 http://www.mulesoft.org/schema/mule/idp-ndac-po-demo-130/current/mule-idp-ndac-po-demo-130.xsd
+http://www.mulesoft.org/schema/mule/idp-ndac-po-demo-140 http://www.mulesoft.org/schema/mule/idp-ndac-po-demo-140/current/mule-idp-ndac-po-demo-140.xsd
+http://www.mulesoft.org/schema/mule/idp-dl-extractor-100 http://www.mulesoft.org/schema/mule/idp-dl-extractor-100/current/mule-idp-dl-extractor-100.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/idp-dl-extractor-110 http://www.mulesoft.org/schema/mule/idp-dl-extractor-110/current/mule-idp-dl-extractor-110.xsd
+http://www.mulesoft.org/schema/mule/idp-document-extractor-100 http://www.mulesoft.org/schema/mule/idp-document-extractor-100/current/mule-idp-document-extractor-100.xsd
+http://www.mulesoft.org/schema/mule/idp-dl-extractor-120 http://www.mulesoft.org/schema/mule/idp-dl-extractor-120/current/mule-idp-dl-extractor-120.xsd">
+	<validation:config name="validationConfig" doc:name="Validation Config" doc:id="d41600fb-fb63-4b2e-80a4-ce20cd7d8722" />
+	<configuration-properties doc:name="configurationProperties" doc:id="60368c63-5b6b-4002-b04e-d9eb42bb53de" file="properties\secure-dev.yaml" />
+	<secure-properties:config name="securePropertiesConfig" doc:name="Secure Properties Config" doc:id="9be1085d-92d3-4789-8597-2e1e688f7c6b" file="properties\secure-dev.yaml" key="${secure.key}" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+    
+    <http:request-config name="salesforceSapiRequestconfig" doc:name="HTTP Request configuration" doc:id="458aa4ca-ac93-4b56-af72-35e4e34bb85c" basePath="${salesforceSapi.api}">
+		<http:request-connection protocol="HTTPS" host="${salesforceSapi.host}" />
+	</http:request-config>
+    <tls:context name="tlsContext" doc:name="TLS Context" doc:id="374bf9b6-78b7-4947-8623-9213baabd3fe">
+        <tls:key-store type="${tls.keystore.type}" path="${tls.keystore.path}" keyPassword="${secure::tls.keystore.password}" password="${secure::tls.keystore.password}" />
+    </tls:context>
+	<global-property doc:name="Global Property" doc:id="319e041c-6b55-4391-916a-5254f2c22c61" name="secure.key" value="${secure.key}" />
+	<idp-dl-extractor-120:config name="idpDLextractor" doc:name="IDP - DL-extractor - 1.2.0 Config" doc:id="5173d417-2f6f-4b71-9997-e332e58563d4" property_host="${idp.host}" property_port="${idp.port}" property_protocol="HTTPS" property_client-id="${secure::idp.clientId}" property_client-secret="${secure::idp.clientSecret}" />
+	<email:imap-config name="emailIMAPLoan" doc:name="Email IMAP" doc:id="700c2d4e-55f8-4983-9371-03671abc44e4" >
+		<email:imaps-connection host="${agentLoanImap.host}" port="${agentLoanImap.port}" user="${agentLoanImap.username}" password="${agentLoanImap.password}">
+			<tls:context >
+				<tls:trust-store insecure="true" />
+			</tls:context>
+		</email:imaps-connection>
+	</email:imap-config>
+	<http:request-config name="notificationSapirequestSapi" doc:name="HTTP Request configuration" doc:id="ce48a0cf-e867-4b08-818a-3461cf792c7a" basePath="${notificationSapi.api}">
+		<http:request-connection protocol="HTTPS" host="${notificationSapi.host}" />
+	</http:request-config>
+</mule>

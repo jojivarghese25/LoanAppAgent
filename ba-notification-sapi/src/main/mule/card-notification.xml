@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="email-notification-sub-flow" doc:id="f2348b64-13e2-4c1f-b5a3-1632e3239371" >
+		<ee:transform doc:name="correlationId,component" doc:id="9688ecd2-7ce4-4d35-b902-c0a8e70632f8">
+			<ee:message />
+			<ee:variables>
+				<ee:set-variable variableName="correlationId"><![CDATA[attributes.headers.correlationId default correlationId]]></ee:set-variable>
+				<ee:set-variable variableName="component"><![CDATA[flow.name]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="flow-entry-logger-sub-flow" doc:id="fd68ac65-9762-4a8b-8973-4470132633c2" name="flow-entry-logger-sub-flow" />
+		<set-variable value="#[output application/java&#10;---&#10;p('smtp.toAddress')]" doc:name="Set Variable" doc:id="9b801b11-b2d2-48ac-b4a2-12a8812d7651" variableName="emailRecipients"/>
+		<parse-template doc:name="to set email body" doc:id="e1817d69-b585-4c41-b82f-6b8a4b9724b1" location="resources\cardEmailNotification.html">
+		</parse-template>
+		<flow-ref doc:name="process-info-logger-sub-flow" doc:id="a6baa566-c062-42f4-a53d-a5599a8d01da" name="process-info-logger-sub-flow" />
+		<email:send doc:id="74d38e58-ec78-4a88-8773-83576d75afd2" config-ref="emailSMTP" fromAddress="${smtp.fromAddress}" subject='#[output text/plain&#10;---&#10;"credit card de-activation status"]' toAddresses='#[vars.emailRecipients splitBy(",")]'>
+		</email:send>
+		<flow-ref doc:name="process-info-logger-sub-flow" doc:id="5e846229-a205-4f27-b44d-cef963c42317" name="process-info-logger-sub-flow" />
+		<ee:transform doc:name="Response" doc:id="e5dffa80-67ce-4981-a82d-e28f5aa83ba6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "message" : "email sent successfully"
+ }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="response-returned-logger-sub-flow" doc:id="5c0e8027-1c1f-49cf-a00d-eb1b7e074ec5" name="response-returned-logger-sub-flow" />
+		<flow-ref doc:name="flow-complete-logger-sub-flow" doc:id="65af6dbc-9ed4-452b-9c19-739d4e1eef8d" name="flow-complete-logger-sub-flow" />
+	
+</sub-flow>
+	</mule>

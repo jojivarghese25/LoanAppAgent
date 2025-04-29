@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="ba-salesforce-eapi-main">
+        <http:listener config-ref="baSalesforceEapiHttpListenerConfig" path="${https.path}">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router doc:name="APIkit Router" doc:id="50dc9428-b574-46ec-808f-af41c2d56ca9" config-ref="baSalesforceEapiConfig" />
+        <error-handler ref="common-exception-handler" />
+    </flow>
+    <flow name="get:\creditcardstatus\(id):baSalesforceEapiConfig">
+        <flow-ref doc:name="deactivate-credit-card-flow" doc:id="3c0c0550-0b43-47ae-b8a7-ce28c9b62782" name="deactivate-credit-card-flow" />
+    </flow>
+    <flow name="get:\paymentdetails\(id):baSalesforceEapiConfig">
+        <flow-ref doc:name="last-transaction-validation-flow" doc:id="324a5155-3637-466f-afe9-a830023da062" name="last-transaction-validation-flow" />
+    </flow>
+    <flow name="get:\securitydetails\(id):baSalesforceEapiConfig">
+        <flow-ref doc:name="security-key-answer-validation-flow" doc:id="487e35e9-ecea-409e-ac6d-49932151807c" name="security-key-answer-validation-flow" />
+    </flow>
+    <flow name="post:\creditscore:application\json:baSalesforceEapiConfig">
+        <flow-ref doc:name="credit-score-flow" doc:id="926842f0-2a0a-469d-b822-306526335064" name="credit-score-flow" />
+    </flow>
+    <flow name="post:\documentsign:application\json:baSalesforceEapiConfig">
+        <flow-ref doc:name="docusign-flow" doc:id="8afaabee-7dc9-4b47-a91a-7d1bad212ee9" name="docusign-flow" />
+    </flow>
+    <flow name="get:\getdocument\(id):baSalesforceEapiConfig">
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Credit card status updated successfully"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\postdocument:application\json:baSalesforceEapiConfig">
+		<flow-ref doc:name="idp-loan-dl-extract" doc:id="92cdb5c8-2318-407a-92e5-0520d5892084" name="idp-loan-dl-extract" />
+    </flow>
+</mule>
